@@ -1,6 +1,6 @@
-import build from '.'
+import build from './index.js'
 
-import config from 'config'
+import config from './config/index.js'
 
 const app = build({
   logger: {

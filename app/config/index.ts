@@ -1,6 +1,6 @@
 import { envSchema } from 'env-schema'
 
-import type { ENV } from 'types'
+import type { ENV } from '../types'
 
 const env: ENV = envSchema({
   dotenv: { path: '.env.local' },

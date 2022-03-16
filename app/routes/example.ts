@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from 'fastify'
 
 const example: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
-  fastify.get('/', async (req, rep) => {
+  fastify.get('/example', async (req, rep) => {
     return req.query
   })
 }

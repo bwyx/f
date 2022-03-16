@@ -1,17 +1,17 @@
 {
   "compilerOptions": {
-    "target": "es2016",
-    "module": "commonjs",
-    "baseUrl": "app",
-    "allowJs": false,
-    "outDir": "dist",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "target": "es2021",
+    "lib": ["es2021"],
+    "module": "es2020",
     "strict": true,
+    "allowJs": false,
     "skipLibCheck": true,
-    "paths": {
-      "app": ["index"]
-    }
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "outDir": "dist"
   },
-  "includes": ["app", "test"]
+  "includes": ["app"]
 }

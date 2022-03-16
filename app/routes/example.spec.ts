@@ -1,5 +1,5 @@
 import ava from 'ava'
-import build from 'app'
+import build from '../index.js'
 
 import type { TestFn } from 'ava'
 import type { FastifyInstance } from 'fastify'
