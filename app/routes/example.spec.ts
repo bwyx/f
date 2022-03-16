@@ -1,28 +1,38 @@
-import ava from 'ava'
+import { expect } from 'chai'
 import build from '../index.js'
 
-import type { TestFn } from 'ava'
 import type { FastifyInstance } from 'fastify'
 
-const test = ava as TestFn<FastifyInstance>
-
-test.beforeEach(async (t) => (t.context = build()))
-test.afterEach(async (t) => t.context.close())
-
-test('GET `/example` returns back queries', async (t) => {
-  t.plan(2)
-
-  const query = {
-    foo: 'bar',
-    baz: 'qux'
+declare module 'mocha' {
+  export interface Context {
+    app: FastifyInstance
   }
+}
 
-  const response = await t.context.inject({
-    method: 'GET',
-    url: '/example',
-    query
+describe('[Route /example]', function () {
+  before('setup fastify', async function () {
+    this.app = build()
+    await this.app.ready()
   })
 
-  t.is(response.statusCode, 200)
-  t.is(response.body, JSON.stringify(query))
+  after('end fastify', async function () {
+    this.app.close()
+  })
+
+  describe('GET', function () {
+    it('should return the query', async function () {
+      const response = await this.app.inject({
+        method: 'GET',
+        url: '/example',
+        query: {
+          foo: 'bar',
+          baz: 'qux'
+        }
+      })
+
+      expect(response.body, 'body should be json of query').to.equal(
+        '{"foo":"bar","baz":"qux"}'
+      )
+    })
+  })
 })

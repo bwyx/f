@@ -1,22 +1,39 @@
-import ava from 'ava'
+import { expect } from 'chai'
 import build from '../index.js'
 
-import type { TestFn } from 'ava'
 import type { FastifyInstance } from 'fastify'
 
-const test = ava as TestFn<FastifyInstance>
+declare module 'mocha' {
+  export interface Context {
+    app: FastifyInstance
+  }
+}
 
-test.beforeEach(async (t) => (t.context = build()))
-test.afterEach(async (t) => t.context.close())
-
-test('GET `/` returns "hello world"', async (t) => {
-  t.plan(2)
-
-  const response = await t.context.inject({
-    method: 'GET',
-    url: '/'
+describe('[Route /]', function () {
+  before('setup fastify', async function () {
+    this.app = build()
+    await this.app.ready()
   })
 
-  t.is(response.statusCode, 200)
-  t.is(response.body, 'hello world')
+  after('end fastify', async function () {
+    this.app.close()
+  })
+
+  describe('GET', function () {
+    it('should response "hello world"', async function () {
+      const response = await this.app.inject({ method: 'GET', url: '/' })
+
+      expect(response.body, 'body should be "hello world"').to.equal(
+        'hello world'
+      )
+    })
+  })
+
+  describe('POST', function () {
+    it('should response with not found', async function () {
+      const response = await this.app.inject({ method: 'POST', url: '/' })
+
+      expect(response.statusCode).to.equal(404)
+    })
+  })
 })
