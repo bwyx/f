@@ -1,3 +1,7 @@
 export type ENV = {
-  PORT: number
+  APP_NAME: string
+  APP_ENV: string
+  APP_PORT: number
+  APP_DEBUG: boolean
+  TRUST_PROXY: boolean
 }
