@@ -4,7 +4,8 @@ import type { FastifyServerOptions } from 'fastify'
 import type { ENV } from '../types'
 
 export const env: ENV = envSchema({
-  dotenv: { path: '.env.local' },
+  dotenv: true,
+  expandEnv: true,
   schema: {
     type: 'object',
     properties: {
