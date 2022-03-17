@@ -19,6 +19,10 @@ const build = (opts: FastifyServerOptions = {}) => {
   })
 
   app.register(autoload, {
+    dir: join(__dirname, 'libs')
+  })
+
+  app.register(autoload, {
     dir: join(__dirname, 'routes'),
     ignorePattern: /.*(test|spec).js/
   })
