@@ -19,6 +19,16 @@ const build = (opts: FastifyServerOptions = {}) => {
   })
 
   app.register(autoload, {
+    dir: join(__dirname, 'services'),
+    ignorePattern: /.*(test|spec).js/
+  })
+
+  app.register(autoload, {
+    dir: join(__dirname, 'controllers'),
+    ignorePattern: /.*(test|spec).js/
+  })
+
+  app.register(autoload, {
     dir: join(__dirname, 'routes'),
     ignorePattern: /.*(test|spec).js/
   })
