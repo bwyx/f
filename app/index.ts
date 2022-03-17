@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 
 import fastify from 'fastify'
 import autoload from 'fastify-autoload'
+import blipp from 'fastify-blipp'
 
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 
@@ -10,6 +11,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const build = (opts: FastifyServerOptions = {}) => {
   const app: FastifyInstance = fastify(opts)
+
+  app.register(blipp)
 
   app.register(autoload, {
     dir: join(__dirname, 'plugins')
