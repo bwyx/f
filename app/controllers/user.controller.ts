@@ -1,7 +1,21 @@
-import type { PrismaClient } from '@prisma/client'
+import fp from 'fastify-plugin'
 
-const userController = (prisma: PrismaClient) => ({
-  query: () => prisma.user.findMany()
-})
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
-export default userController
+class UserController {
+  async list(this: FastifyInstance, req: FastifyRequest, rep: FastifyReply) {
+    const users = await this.userService.query()
+
+    rep.send(users)
+  }
+}
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    userController: UserController
+  }
+}
+
+export default fp(async (fastify) =>
+  fastify.decorate('userController', new UserController())
+)
