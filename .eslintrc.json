@@ -12,6 +12,7 @@
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
+    "import/no-unresolved": "off", // ts esm required to use .js extension on ts file,
     "import/extensions": [
       "error",
       {
