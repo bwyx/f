@@ -10,7 +10,8 @@
     "test": "npm run build && mocha dist/**/*.spec.js",
     "test:w": "npm run clean && NODE_ENV=development tsc-watch --onSuccess \"mocha dist/**/*.spec.js\"",
     "lint": "eslint --fix --ext .ts .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "husky install"
   },
   "author": "Bayu Kurnia",
   "license": "MIT",
@@ -39,6 +40,8 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.25.4",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.3.7",
     "mocha": "^9.2.2",
     "pino-colada": "^2.2.2",
     "prettier": "2.6.0",
@@ -57,5 +60,8 @@
   },
   "prisma": {
     "schema": "app/database/schema.prisma"
+  },
+  "lint-staged": {
+    "*.ts": ["eslint --cache --fix --cache-location ./node_modules/.cache/.eslintcache","prettier --write"]
   }
 }
