@@ -14,7 +14,7 @@ const start = async () => {
       await app.listen(env.APP_PORT)
     }
   } catch (err) {
-    console.log(err)
+    app.log.fatal(err)
     process.exit(1)
   }
 

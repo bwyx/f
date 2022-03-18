@@ -11,6 +11,7 @@ class UserController {
 }
 
 declare module 'fastify' {
+  // eslint-disable-next-line no-shadow, no-unused-vars
   interface FastifyInstance {
     userController: UserController
   }

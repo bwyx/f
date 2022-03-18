@@ -11,15 +11,14 @@ interface IUserCreate {
 
 export class UserService {
   private user
+
   constructor(_user: PrismaClient['user']) {
     this.user = _user
   }
 
   async create(data: IUserCreate) {
-    let createdUser
-
     try {
-      createdUser = await this.user.create({
+      return await this.user.create({
         data,
         select: {
           id: true,
@@ -35,20 +34,16 @@ export class UserService {
       }
     }
 
-    return createdUser
+    return null
   }
 
-  async query(args?: Prisma.UserFindManyArgs) {
-    const users = await this.user.findMany(args)
-
-    return users
+  query(args?: Prisma.UserFindManyArgs) {
+    return this.user.findMany(args)
   }
 
   async remove(id: User['id']) {
-    let deletedUser
-
     try {
-      deletedUser = await this.user.delete({ where: { id } })
+      return await this.user.delete({ where: { id } })
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError) {
         if (e.code === 'P2025') {
@@ -57,11 +52,12 @@ export class UserService {
       }
     }
 
-    return deletedUser
+    return null
   }
 }
 
 declare module 'fastify' {
+  // eslint-disable-next-line no-unused-vars
   interface FastifyInstance {
     userService: UserService
   }

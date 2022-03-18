@@ -1,12 +1,14 @@
-import { UserService } from './user.service.js'
-
+/* eslint-disable func-names */
 import sinon, { SinonMock } from 'sinon'
 import chai, { expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-chai.use(chaiAsPromised)
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 import type { PrismaClient } from '@prisma/client'
+
+import { UserService } from './user.service.js'
+
+chai.use(chaiAsPromised)
 
 declare module 'mocha' {
   export interface Context {
@@ -30,7 +32,7 @@ const model: PrismaClient['user'] = {
   groupBy: () => <any>{}
 }
 
-describe('[Service: User]', function () {
+describe('[Service: User]', () => {
   const userService = new UserService(model)
 
   beforeEach(function () {
@@ -42,7 +44,7 @@ describe('[Service: User]', function () {
     this.mockModel.restore()
   })
 
-  describe('create()', function () {
+  describe('create()', () => {
     it('should call `create()` only and once', async function () {
       const user = {
         name: 'New User',
@@ -85,7 +87,7 @@ describe('[Service: User]', function () {
     })
   })
 
-  describe('query()', function () {
+  describe('query()', () => {
     it('should call `findMany()` once', async function () {
       this.mockModel.expects('findMany').once()
 
@@ -93,7 +95,7 @@ describe('[Service: User]', function () {
     })
   })
 
-  describe('remove()', function () {
+  describe('remove()', () => {
     it('should call `delete()` only and once', async function () {
       this.mockModel.expects('delete').once()
 

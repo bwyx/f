@@ -7,7 +7,7 @@ import blipp from 'fastify-blipp'
 
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const dir = dirname(fileURLToPath(import.meta.url))
 
 const build = (opts: FastifyServerOptions = {}) => {
   const app: FastifyInstance = fastify(opts)
@@ -15,21 +15,21 @@ const build = (opts: FastifyServerOptions = {}) => {
   app.register(blipp)
 
   app.register(autoload, {
-    dir: join(__dirname, 'plugins')
+    dir: join(dir, 'plugins')
   })
 
   app.register(autoload, {
-    dir: join(__dirname, 'services'),
+    dir: join(dir, 'services'),
     ignorePattern: /.*(test|spec).js/
   })
 
   app.register(autoload, {
-    dir: join(__dirname, 'controllers'),
+    dir: join(dir, 'controllers'),
     ignorePattern: /.*(test|spec).js/
   })
 
   app.register(autoload, {
-    dir: join(__dirname, 'routes'),
+    dir: join(dir, 'routes'),
     ignorePattern: /.*(test|spec).js/
   })
 
