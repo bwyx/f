@@ -10,5 +10,14 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint"],
-  "rules": {}
+  "rules": {
+    "import/extensions": [
+      "error",
+      {
+        // node esm is required to use full path
+        // https://nodejs.org/api/esm.html#customizing-esm-specifier-resolution-algorithm
+        "js": "always"
+      }
+    ]
+  }
 }
