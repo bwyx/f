@@ -41,6 +41,7 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.25.4",
     "husky": "^7.0.4",
+    "json-schema-to-ts": "^1.6.5",
     "lint-staged": "^12.3.7",
     "mocha": "^9.2.2",
     "pino-colada": "^2.2.2",
@@ -62,6 +63,9 @@
     "schema": "app/database/schema.prisma"
   },
   "lint-staged": {
-    "*.ts": ["eslint --cache --fix --cache-location ./node_modules/.cache/.eslintcache","prettier --write"]
+    "*.ts": [
+      "eslint --cache --fix --cache-location ./node_modules/.cache/.eslintcache",
+      "prettier --write"
+    ]
   }
 }
