@@ -85,6 +85,24 @@ describe('[Service: User]', () => {
         ERROR_MESSAGE
       )
     })
+
+    it('should throw another unhandled internal error', async function () {
+      const ERROR_MESSAGE = 'unhandled internal error'
+      const unhandledError = new Error(ERROR_MESSAGE)
+
+      const user = {
+        name: 'New User',
+        email: 'new@user.com',
+        password: 'strongpassword'
+      }
+
+      this.mockModel.expects('create').throws(unhandledError)
+
+      await expect(userService.create(user)).to.be.rejectedWith(
+        Error,
+        ERROR_MESSAGE
+      )
+    })
   })
 
   describe('query()', () => {
@@ -114,6 +132,18 @@ describe('[Service: User]', () => {
       this.mockModel.expects('delete').throws(prismaRecordDoesNotExistError)
 
       await expect(userService.remove('nonExistUserId')).to.be.rejectedWith(
+        Error,
+        ERROR_MESSAGE
+      )
+    })
+
+    it('should throw another unhandled internal error', async function () {
+      const ERROR_MESSAGE = 'unhandled internal error'
+      const unhandledError = new Error(ERROR_MESSAGE)
+
+      this.mockModel.expects('delete').throws(unhandledError)
+
+      await expect(userService.remove('userId')).to.be.rejectedWith(
         Error,
         ERROR_MESSAGE
       )

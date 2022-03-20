@@ -32,9 +32,9 @@ export class UserService {
           throw new Error('Email already registered')
         }
       }
-    }
 
-    return null
+      throw e
+    }
   }
 
   query(args?: Prisma.UserFindManyArgs) {
@@ -50,9 +50,9 @@ export class UserService {
           throw new Error('User to delete does not exist')
         }
       }
-    }
 
-    return null
+      throw e
+    }
   }
 }
 
