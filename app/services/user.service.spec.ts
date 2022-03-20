@@ -45,6 +45,36 @@ describe('[Service: User]', () => {
     this.mockModel.restore()
   })
 
+  describe('getUnique()', () => {
+    it('should call `findUnique()` only and once', async function () {
+      this.mockModel.expects('findUnique').once()
+      this.mockModel.expects('findFirst').never()
+      this.mockModel.expects('findMany').never()
+
+      await userService.getUnique({ where: { id: 'userId' } })
+    })
+  })
+
+  describe('getFirst()', () => {
+    it('should call `findFirst()` only and once', async function () {
+      this.mockModel.expects('findFirst').once()
+      this.mockModel.expects('findUnique').never()
+      this.mockModel.expects('findMany').never()
+
+      await userService.getFirst({ where: { id: 'userId' } })
+    })
+  })
+
+  describe('query()', () => {
+    it('should call `findMany()` only and once', async function () {
+      this.mockModel.expects('findMany').once()
+      this.mockModel.expects('findUnique').never()
+      this.mockModel.expects('findFirst').never()
+
+      await userService.query()
+    })
+  })
+
   describe('create()', () => {
     it('should call `create()` only and once', async function () {
       const user = {
@@ -106,17 +136,12 @@ describe('[Service: User]', () => {
     })
   })
 
-  describe('query()', () => {
-    it('should call `findMany()` once', async function () {
-      this.mockModel.expects('findMany').once()
-
-      await userService.query()
-    })
-  })
-
   describe('remove()', () => {
     it('should call `delete()` only and once', async function () {
       this.mockModel.expects('delete').once()
+      this.mockModel.expects('findUnique').never()
+      this.mockModel.expects('findFirst').never()
+      this.mockModel.expects('findMany').never()
 
       await userService.remove('userId')
     })
