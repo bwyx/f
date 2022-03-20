@@ -8,8 +8,10 @@ export const env: ENV = envSchema({
   expandEnv: true,
   schema: {
     type: 'object',
+    required: ['APP_KEY'],
     properties: {
       APP_NAME: { type: 'string', default: 'f' },
+      APP_KEY: { type: 'string' },
       APP_ENV: { type: 'string', default: 'production' },
       APP_PORT: { type: 'number', default: 5000 },
       APP_DEBUG: { type: 'boolean', default: false },
