@@ -1,12 +1,35 @@
 import fp from 'fastify-plugin'
 
-import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import type { FastifyInstance, RouteHandler } from 'fastify'
+import type { FromSchema } from 'json-schema-to-ts'
+
+import { createUserBody, deleteUserParams } from '../validations/user.schema.js'
 
 class UserController {
-  async list(this: FastifyInstance, req: FastifyRequest, rep: FastifyReply) {
-    const users = await this.userService.query()
+  private userService
 
-    rep.send(users)
+  constructor(app: FastifyInstance) {
+    this.userService = app.userService
+  }
+
+  list: RouteHandler = async (req, rep) => {
+    rep.send(await this.userService.query())
+  }
+
+  create: RouteHandler<{
+    Body: FromSchema<typeof createUserBody>
+  }> = async (req, rep) => {
+    rep.send(await this.userService.create(req.body))
+  }
+
+  delete: RouteHandler<{
+    Params: FromSchema<typeof deleteUserParams>
+    Reply: undefined // 204
+  }> = async (req, rep) => {
+    const { userId } = req.params
+    await this.userService.remove(userId)
+
+    rep.code(204)
   }
 }
 
@@ -17,6 +40,6 @@ declare module 'fastify' {
   }
 }
 
-export default fp(async (fastify) =>
-  fastify.decorate('userController', new UserController())
+export default fp(async (app) =>
+  app.decorate('userController', new UserController(app))
 )

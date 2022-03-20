@@ -1,7 +1,32 @@
-import { FastifyPluginAsync } from 'fastify'
+import type { FastifyPluginAsync } from 'fastify'
 
-const example: FastifyPluginAsync = async (fastify): Promise<void> => {
-  fastify.get('/', fastify.userController.list)
+import {
+  createUserBody,
+  deleteUserParams
+} from '../../validations/user.schema.js'
+
+const routes: FastifyPluginAsync = async (app): Promise<void> => {
+  const { userController } = app
+
+  app.route({
+    method: 'GET',
+    url: '/',
+    handler: userController.list
+  })
+
+  app.route({
+    method: 'POST',
+    url: '/',
+    schema: { body: createUserBody },
+    handler: userController.create
+  })
+
+  app.route({
+    method: 'DELETE',
+    url: '/:userId',
+    schema: { params: deleteUserParams },
+    handler: userController.delete
+  })
 }
 
-export default example
+export default routes
