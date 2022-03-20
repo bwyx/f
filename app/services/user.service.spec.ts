@@ -2,6 +2,7 @@
 import sinon, { SinonMock } from 'sinon'
 import chai, { expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
+import httpErrors from 'http-errors'
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 import type { PrismaClient } from '@prisma/client'
@@ -60,7 +61,7 @@ describe('[Service: User]', () => {
       await userService.create(user)
     })
 
-    it('should throw [Error: Email already registered] if record already exists', async function () {
+    it('should throw [BadRequest: Email already registered] if record already exists', async function () {
       const ERROR_MESSAGE = 'Email already registered'
       // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
       const prismaUniqueConstraintError = new PrismaClientKnownRequestError(
@@ -81,7 +82,7 @@ describe('[Service: User]', () => {
         .throws(prismaUniqueConstraintError)
 
       await expect(userService.create(user)).to.be.rejectedWith(
-        Error,
+        httpErrors.BadRequest,
         ERROR_MESSAGE
       )
     })
@@ -120,8 +121,7 @@ describe('[Service: User]', () => {
       await userService.remove('userId')
     })
 
-    it('should throw [Error: User to delete does not exist] if no user record found', async function () {
-      const ERROR_MESSAGE = 'User to delete does not exist'
+    it('should not throws if no user record found', async function () {
       // https://www.prisma.io/docs/reference/api-reference/error-reference#p2025
       const prismaRecordDoesNotExistError = new PrismaClientKnownRequestError(
         'Prisma Internal Error: Record to delete does not exist',
@@ -131,10 +131,9 @@ describe('[Service: User]', () => {
 
       this.mockModel.expects('delete').throws(prismaRecordDoesNotExistError)
 
-      await expect(userService.remove('nonExistUserId')).to.be.rejectedWith(
-        Error,
-        ERROR_MESSAGE
-      )
+      await expect(
+        userService.remove('nonExistUserId')
+      ).to.be.fulfilled.and.eventually.equal(null)
     })
 
     it('should throw another unhandled internal error', async function () {

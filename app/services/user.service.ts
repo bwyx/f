@@ -1,4 +1,5 @@
 import fp from 'fastify-plugin'
+import httpErrors from 'http-errors'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 
 import type { Prisma, PrismaClient, User } from '@prisma/client'
@@ -29,7 +30,7 @@ export class UserService {
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError) {
         if (e.code === 'P2002') {
-          throw new Error('Email already registered')
+          throw new httpErrors.BadRequest('Email already registered')
         }
       }
 
@@ -47,7 +48,7 @@ export class UserService {
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError) {
         if (e.code === 'P2025') {
-          throw new Error('User to delete does not exist')
+          return null
         }
       }
 
