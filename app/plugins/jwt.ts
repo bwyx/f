@@ -1,8 +1,6 @@
 import fp from 'fastify-plugin'
 import jwt, { FastifyJWTOptions } from 'fastify-jwt'
 
-import type { FastifyReply, FastifyRequest } from 'fastify'
-
 import { env } from '../config/index.js'
 
 /**
@@ -17,25 +15,15 @@ export default fp<FastifyJWTOptions>(async (fastify) => {
   fastify.register(jwt, {
     secret: env.APP_KEY
   })
-
-  fastify.decorate(
-    'verifyJwt',
-    async (req: FastifyRequest, rep: FastifyReply) => {
-      try {
-        await req.jwtVerify()
-      } catch (err) {
-        rep.send(err)
-      }
-    }
-  )
 })
 
 declare module 'fastify-jwt' {
   // eslint-disable-next-line no-unused-vars
   interface FastifyJWT {
-    payload: { sub: string } // payload type is used for signing and verifying
-    user: {
+    // payload type is used for signing and verifying
+    payload: {
       sub: string
-    } // user type is return type of `request.user` object
+      type: 'access' | 'refresh'
+    }
   }
 }
