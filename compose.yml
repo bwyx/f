@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres:13
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    volumes:
+      - /tmp/postgres-integration:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PORT: ${DB_PORT}
+      POSTGRES_DB: ${DB_NAME}
