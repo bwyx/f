@@ -17,4 +17,16 @@ model User {
   email        String    @unique
   name         String
   passwordHash String
+  sessions     Token[]
+}
+
+model Token {
+  id        String    @id @default(cuid())
+  token     String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  @@unique([userId, token])
 }
