@@ -1,5 +1,6 @@
 import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
+import { compare } from 'bcrypt'
 
 import type { FastifyInstance, RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
@@ -42,8 +43,10 @@ class AuthController {
       return
     }
 
-    if (user.password !== password) {
-      rep.unauthorized('wrong email/password')
+    const match = await compare(password, user.passwordHash)
+
+    if (!match) {
+      rep.unauthorized("The password that you've entered is incorrect.")
       return
     }
 
