@@ -21,12 +21,14 @@ model User {
 }
 
 model Token {
-  id        String    @id @default(cuid())
-  token     String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  createdAt DateTime  @default(now())
-  revokedAt DateTime?
+  id         String    @id @default(cuid())
+  token      String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  expires    DateTime
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+  replacedBy String?
 
   @@unique([userId, token])
 }
