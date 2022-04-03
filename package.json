@@ -22,6 +22,7 @@
   "dependencies": {
     "@prisma/client": "^3.11.0",
     "bcrypt": "^5.0.1",
+    "crypto-random-string": "^4.0.0",
     "env-schema": "^3.5.2",
     "fastify": "^3.27.4",
     "fastify-autoload": "^3.11.0",
