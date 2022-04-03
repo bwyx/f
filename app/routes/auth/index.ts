@@ -1,6 +1,10 @@
 import type { FastifyPluginAsync } from 'fastify'
 
-import { registerBody, loginBody } from '../../validations/auth.schema.js'
+import {
+  registerBody,
+  loginBody,
+  refreshTokenHeaders
+} from '../../validations/auth.schema.js'
 
 const routes: FastifyPluginAsync = async (app): Promise<void> => {
   const { authController, verifyJwt } = app
@@ -20,9 +24,16 @@ const routes: FastifyPluginAsync = async (app): Promise<void> => {
   })
 
   app.route({
+    method: 'GET',
+    url: '/sessions',
+    onRequest: verifyJwt,
+    handler: authController.getSessions
+  })
+
+  app.route({
     method: 'POST',
     url: '/refresh-tokens',
-    onRequest: verifyJwt,
+    schema: { headers: refreshTokenHeaders },
     handler: authController.refreshTokens
   })
 }

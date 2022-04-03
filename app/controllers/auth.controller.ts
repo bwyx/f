@@ -1,11 +1,14 @@
 import fp from 'fastify-plugin'
-import httpErrors from 'http-errors'
 import { compare } from 'bcrypt'
 
 import type { FastifyInstance, RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
-import { registerBody, loginBody } from '../validations/auth.schema.js'
+import {
+  registerBody,
+  loginBody,
+  refreshTokenHeaders
+} from '../validations/auth.schema.js'
 
 class AuthController {
   private userService
@@ -22,10 +25,9 @@ class AuthController {
   }> = async (req, rep) => {
     const { name, email, password } = req.body
 
-    const user = await this.userService.create({ name, email, password })
-    const tokens = this.tokenService.generateAuthTokens(user.id)
+    await this.userService.create({ name, email, password })
 
-    rep.code(201).send({ user, tokens })
+    rep.code(201).send()
   }
 
   login: RouteHandler<{
@@ -50,17 +52,24 @@ class AuthController {
       return
     }
 
-    rep.send(this.tokenService.generateAuthTokens(user.id))
+    rep.send(await this.tokenService.generateAuthTokens(user.id))
   }
 
-  refreshTokens: RouteHandler = async (req, rep) => {
+  getSessions: RouteHandler = async (req, rep) => {
     const { sub } = req.user
-    const user = await this.userService.getUnique({ where: { id: sub } })
-    if (!user)
-      throw new httpErrors.Unauthorized(
-        'Oops!, Looks like this user has been deleted'
-      )
-    rep.send(this.tokenService.generateAuthTokens(user.id))
+
+    rep.send(await this.tokenService.getUserTokens(sub))
+  }
+
+  refreshTokens: RouteHandler<{
+    Headers: FromSchema<typeof refreshTokenHeaders>
+  }> = async (req, rep) => {
+    const bearerToken = req.headers.authorization.split(' ')[1]
+
+    const token = await this.tokenService.getToken(bearerToken)
+    const accessToken = this.tokenService.generateAccessToken(token.userId)
+
+    rep.send({ accessToken })
   }
 }
 

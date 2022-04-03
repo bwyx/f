@@ -16,3 +16,11 @@ export const loginBody = {
     password: { type: 'string' }
   }
 } as const
+
+export const refreshTokenHeaders = {
+  type: 'object',
+  required: ['authorization'],
+  properties: {
+    authorization: { type: 'string' }
+  }
+} as const
