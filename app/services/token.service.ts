@@ -41,9 +41,8 @@ export class TokenService {
   }
 
   getToken = async (userToken: string) => {
-    const t = userToken.split('.')
-    const token = t[0]
-    const userId = Buffer.from(t[1], 'base64').toString()
+    const [token, user64] = userToken.split('.')
+    const userId = Buffer.from(user64, 'base64').toString()
 
     const refreshToken = await this.token.findUnique({
       where: {
