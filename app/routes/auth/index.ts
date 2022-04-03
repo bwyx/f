@@ -3,7 +3,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import {
   registerBody,
   loginBody,
-  refreshTokenHeaders
+  authorizationHeaders
 } from '../../validations/auth.schema.js'
 
 const routes: FastifyPluginAsync = async (app): Promise<void> => {
@@ -24,6 +24,13 @@ const routes: FastifyPluginAsync = async (app): Promise<void> => {
   })
 
   app.route({
+    method: 'POST',
+    url: '/logout',
+    schema: { headers: authorizationHeaders },
+    handler: authController.logout
+  })
+
+  app.route({
     method: 'GET',
     url: '/sessions',
     onRequest: verifyJwt,
@@ -33,7 +40,7 @@ const routes: FastifyPluginAsync = async (app): Promise<void> => {
   app.route({
     method: 'POST',
     url: '/refresh-tokens',
-    schema: { headers: refreshTokenHeaders },
+    schema: { headers: authorizationHeaders },
     handler: authController.refreshTokens
   })
 }

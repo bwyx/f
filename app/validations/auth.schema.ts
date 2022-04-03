@@ -17,7 +17,7 @@ export const loginBody = {
   }
 } as const
 
-export const refreshTokenHeaders = {
+export const authorizationHeaders = {
   type: 'object',
   required: ['authorization'],
   properties: {

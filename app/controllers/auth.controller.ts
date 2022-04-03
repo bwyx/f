@@ -7,7 +7,7 @@ import type { FromSchema } from 'json-schema-to-ts'
 import {
   registerBody,
   loginBody,
-  refreshTokenHeaders
+  authorizationHeaders
 } from '../validations/auth.schema.js'
 
 class AuthController {
@@ -55,6 +55,15 @@ class AuthController {
     rep.send(await this.tokenService.generateAuthTokens(user.id))
   }
 
+  logout: RouteHandler<{
+    Headers: FromSchema<typeof authorizationHeaders>
+  }> = async (req, rep) => {
+    const refreshToken = req.headers.authorization.split(' ')[1]
+    await this.tokenService.revokeRefreshToken(refreshToken)
+
+    rep.code(204)
+  }
+
   getSessions: RouteHandler = async (req, rep) => {
     const { sub } = req.user
 
@@ -62,14 +71,13 @@ class AuthController {
   }
 
   refreshTokens: RouteHandler<{
-    Headers: FromSchema<typeof refreshTokenHeaders>
+    Headers: FromSchema<typeof authorizationHeaders>
   }> = async (req, rep) => {
-    const bearerToken = req.headers.authorization.split(' ')[1]
+    const refreshToken = req.headers.authorization.split(' ')[1]
 
-    const token = await this.tokenService.getToken(bearerToken)
-    const accessToken = this.tokenService.generateAccessToken(token.userId)
+    const tokens = await this.tokenService.refreshAuthTokens(refreshToken)
 
-    rep.send({ accessToken })
+    rep.send(tokens)
   }
 }
 
