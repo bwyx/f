@@ -91,6 +91,26 @@ describe('[Service: User]', () => {
       await userService.create(user)
     })
 
+    it('should hash password', async function () {
+      const user = {
+        name: 'New User',
+        email: 'new@user.com',
+        password: 'strongpassword'
+      }
+
+      const args = sinon.match
+        // has passwordHash field
+        .hasNested('data.passwordHash')
+        // and it's not a plain-text password
+        .and(sinon.match((v) => v.data.passwordHash !== user.password))
+        // and has no password field
+        .and(sinon.match((v) => v.data.password === undefined))
+
+      this.mockModel.expects('create').withArgs(args)
+
+      await userService.create(user)
+    })
+
     it('should throw [BadRequest: Email already registered] if record already exists', async function () {
       const ERROR_MESSAGE = 'Email already registered'
       // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
