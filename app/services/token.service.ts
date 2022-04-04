@@ -60,7 +60,7 @@ export class TokenService {
 
   generateRefreshToken = async (userId: string) => {
     const DAY = 1000 * 60 * 60 * 24
-    const token = cryptoRandomString({ length: 64, type: 'base64' })
+    const token = cryptoRandomString({ length: 24, type: 'base64' })
     const expires = new Date(Date.now() + DAY * 7)
 
     const t = await this.token.create({ data: { userId, token, expires } })
@@ -88,13 +88,7 @@ export class TokenService {
 
   getUserTokens = (userId: string) => this.token.findMany({ where: { userId } })
 
-  static verifyJwt = async (req: FastifyRequest) => {
-    try {
-      await req.jwtVerify()
-    } catch (e) {
-      throw new httpErrors.BadRequest((<Error>e).message)
-    }
-  }
+  static verifyJwt = (req: FastifyRequest) => req.jwtVerify()
 }
 
 declare module 'fastify' {
