@@ -1,12 +1,12 @@
 -- CreateTable
 CREATE TABLE "Token" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "token" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "userId" UUID NOT NULL,
     "expires" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "revokedAt" TIMESTAMP(3),
-    "replacedBy" TEXT,
+    "replacedBy" UUID,
 
     CONSTRAINT "Token_pkey" PRIMARY KEY ("id")
 );

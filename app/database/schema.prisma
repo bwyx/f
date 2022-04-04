@@ -11,7 +11,7 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt    DateTime  @default(now())
   verifiedAt   DateTime?
   email        String    @unique
@@ -21,14 +21,14 @@ model User {
 }
 
 model Token {
-  id         String    @id @default(cuid())
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   token      String
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
+  userId     String    @db.Uuid
   expires    DateTime
   createdAt  DateTime  @default(now())
   revokedAt  DateTime?
-  replacedBy String?
+  replacedBy String?   @db.Uuid
 
   @@unique([userId, token])
 }
