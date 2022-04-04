@@ -16,3 +16,6 @@ CREATE UNIQUE INDEX "Token_userId_token_key" ON "Token"("userId", "token");
 
 -- AddForeignKey
 ALTER TABLE "Token" ADD CONSTRAINT "Token_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Token" ADD CONSTRAINT "Token_replacedBy_fkey" FOREIGN KEY ("replacedBy") REFERENCES "Token"("id") ON DELETE CASCADE ON UPDATE CASCADE;

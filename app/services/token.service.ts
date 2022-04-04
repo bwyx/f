@@ -74,10 +74,16 @@ export class TokenService {
     { replacedBy }: { replacedBy?: string } = {}
   ) => {
     const { userId, token } = splitRefreshToken(refreshToken)
-    await this.token.update({
-      where: { userId_token: { userId, token } },
-      data: { revokedAt: new Date(), replacedBy }
-    })
+    if (replacedBy) {
+      await this.token.update({
+        where: { userId_token: { userId, token } },
+        data: { revokedAt: new Date(), replacedBy }
+      })
+    } else {
+      await this.token.delete({
+        where: { userId_token: { userId, token } }
+      })
+    }
   }
 
   getUserTokens = (userId: string) => this.token.findMany({ where: { userId } })
