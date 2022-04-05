@@ -37,15 +37,11 @@ export class TokenService {
       throw new httpErrors.Unauthorized('Please login again')
     }
 
-    // If the refresh token is found and not revoked then generate new tokens
+    // else then revoke the old refresh token replacing it with the new one
     const accessToken = this.generateAccessToken(userId)
-    const { createdToken, refreshToken: newRefreshToken } =
-      await this.generateRefreshToken(userId)
+    const refreshToken = await this.revokeRefreshToken(token, true)
 
-    // Then revoke the old refresh token replacing it with the new one
-    await this.revokeRefreshToken(token, { replacedBy: createdToken.id })
-
-    return { accessToken, refreshToken: newRefreshToken }
+    return { accessToken, refreshToken }
   }
 
   generateAccessToken = (sub: FastifyJWT['payload']['sub']) => {
@@ -70,21 +66,31 @@ export class TokenService {
     return { createdToken, refreshToken }
   }
 
-  revokeRefreshToken = async (
-    token: string,
-    { replacedBy }: { replacedBy?: string } = {}
-  ) => {
+  revokeRefreshToken = async (token: string, replaceByNewToken: boolean) => {
     const userId = verifyOpaqueToken(token)
-    if (replacedBy) {
-      await this.token.update({
+    if (replaceByNewToken) {
+      const x = await this.token.update({
         where: { userId_token: { userId, token } },
-        data: { revokedAt: new Date(), replacedBy }
+        data: {
+          revokedAt: new Date(),
+          replacedByToken: {
+            create: {
+              userId,
+              token: createOpaqueToken(userId),
+              expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
+            }
+          }
+        }
       })
-    } else {
-      await this.token.delete({
-        where: { userId_token: { userId, token } }
-      })
+
+      return x.replacedBy
     }
+
+    await this.token.delete({
+      where: { userId_token: { userId, token } }
+    })
+
+    return null
   }
 
   getUserTokens = (userId: string) => this.token.findMany({ where: { userId } })
