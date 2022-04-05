@@ -1,11 +1,10 @@
 import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
-import cryptoRandomString from 'crypto-random-string'
 
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 import type { FastifyJWT } from 'fastify-jwt'
 
-import { splitRefreshToken } from '../utils/index.js'
+import { createOpaqueToken, verifyOpaqueToken } from '../utils/token.util.js'
 
 export class TokenService {
   private jwt
@@ -24,8 +23,8 @@ export class TokenService {
     return { accessToken, refreshToken }
   }
 
-  refreshAuthTokens = async (refreshToken: string) => {
-    const { userId, token } = splitRefreshToken(refreshToken)
+  refreshAuthTokens = async (token: string) => {
+    const userId = verifyOpaqueToken(token)
     // Find the refresh token in the database
     const tokenFound = await this.token.findUnique({
       where: { userId_token: { userId, token } }
@@ -44,7 +43,7 @@ export class TokenService {
       await this.generateRefreshToken(userId)
 
     // Then revoke the old refresh token replacing it with the new one
-    await this.revokeRefreshToken(refreshToken, { replacedBy: createdToken.id })
+    await this.revokeRefreshToken(token, { replacedBy: createdToken.id })
 
     return { accessToken, refreshToken: newRefreshToken }
   }
@@ -60,20 +59,22 @@ export class TokenService {
 
   generateRefreshToken = async (userId: string) => {
     const DAY = 1000 * 60 * 60 * 24
-    const token = cryptoRandomString({ length: 24, type: 'base64' })
+
+    const refreshToken = createOpaqueToken(userId)
     const expires = new Date(Date.now() + DAY * 7)
 
-    const t = await this.token.create({ data: { userId, token, expires } })
-    const u = Buffer.from(userId).toString('base64')
+    const createdToken = await this.token.create({
+      data: { userId, token: refreshToken, expires }
+    })
 
-    return { createdToken: t, refreshToken: `${t.token}.${u}` }
+    return { createdToken, refreshToken }
   }
 
   revokeRefreshToken = async (
-    refreshToken: string,
+    token: string,
     { replacedBy }: { replacedBy?: string } = {}
   ) => {
-    const { userId, token } = splitRefreshToken(refreshToken)
+    const userId = verifyOpaqueToken(token)
     if (replacedBy) {
       await this.token.update({
         where: { userId_token: { userId, token } },
