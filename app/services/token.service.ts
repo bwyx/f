@@ -1,19 +1,20 @@
 import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
 
-import type { FastifyInstance, FastifyRequest } from 'fastify'
-import type { FastifyJWT } from 'fastify-jwt'
+import type { FastifyRequest } from 'fastify'
+import type { JWT } from 'fastify-jwt'
+import type { PrismaClient } from '@prisma/client'
 
 import { createOpaqueToken, verifyOpaqueToken } from '../utils/token.util.js'
 
 export class TokenService {
-  private jwt
-
   private token
 
-  constructor(app: FastifyInstance) {
-    this.jwt = app.jwt
-    this.token = app.prisma.token
+  private jwt
+
+  constructor(_token: PrismaClient['token'], _jwt: JWT) {
+    this.token = _token
+    this.jwt = _jwt
   }
 
   generateAuthTokens = async (userId: string) => {
@@ -44,9 +45,9 @@ export class TokenService {
     return { accessToken, refreshToken }
   }
 
-  generateAccessToken = (sub: FastifyJWT['payload']['sub']) => {
+  generateAccessToken = (userId: string) => {
     const accessToken = this.jwt.sign(
-      { sub, type: 'access' },
+      { sub: userId, type: 'access' },
       { expiresIn: '30m' }
     )
 
@@ -107,6 +108,7 @@ declare module 'fastify' {
 }
 
 export default fp(async (app) => {
-  app.decorate('tokenService', new TokenService(app))
+  const { prisma, jwt } = app
+  app.decorate('tokenService', new TokenService(prisma.token, jwt))
   app.decorate('verifyJwt', TokenService.verifyJwt)
 })
