@@ -66,10 +66,10 @@ export class TokenService {
     return { createdToken, refreshToken }
   }
 
-  revokeRefreshToken = async (token: string, replaceByNewToken: boolean) => {
+  revokeRefreshToken = async (token: string, replaceByNewToken?: boolean) => {
     const userId = verifyOpaqueToken(token)
     if (replaceByNewToken) {
-      const x = await this.token.update({
+      const updatedToken = await this.token.update({
         where: { userId_token: { userId, token } },
         data: {
           revokedAt: new Date(),
@@ -83,7 +83,7 @@ export class TokenService {
         }
       })
 
-      return x.replacedBy
+      return updatedToken.replacedBy
     }
 
     await this.token.delete({
