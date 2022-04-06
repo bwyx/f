@@ -5,7 +5,7 @@ import chaiAsPromised from 'chai-as-promised'
 import httpErrors from 'http-errors'
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient, Token } from '@prisma/client'
 import type { JWT } from 'fastify-jwt'
 
 import { TokenService } from './token.service.js'
@@ -157,6 +157,49 @@ describe('[Service: Token]', () => {
         tokenService.generateRefreshToken(userId, {
           replaceToken: 'nonExistToken'
         })
+      ).to.be.rejectedWith(httpErrors.Unauthorized)
+    })
+  })
+
+  describe('refreshAuthTokens()', () => {
+    const ONE_HOUR = 60 * 60 * 1000
+
+    const tokenData = {
+      id: '6c92d1b9-bc51-40f6-9a78-fb1e4d7fa976',
+      token: validRefreshToken,
+      userId
+    }
+
+    const activeToken: Token = {
+      ...tokenData,
+      expires: new Date(Date.now() + ONE_HOUR),
+      createdAt: new Date(Date.now() - ONE_HOUR * 2),
+      revokedAt: null,
+      replacedBy: null
+    }
+
+    const revokedToken: Token = {
+      ...tokenData,
+      expires: new Date(Date.now() - ONE_HOUR),
+      createdAt: new Date(Date.now() - ONE_HOUR * 2),
+      revokedAt: new Date(Date.now() - ONE_HOUR),
+      replacedBy: 'd38edbe9-f6a4-4ffd-be11-118c29fcf81a'
+    }
+
+    it('should create a new token replacing the old one', async function () {
+      this.token.expects('findUnique').once().returns(activeToken)
+      this.token.expects('update').once()
+
+      await expect(tokenService.refreshAuthTokens(validRefreshToken)).to.be
+        .fulfilled
+    })
+
+    it('should throw [Unauthorized] if the provided refresh token is already revoked', async function () {
+      this.token.expects('findUnique').once().returns(revokedToken)
+      this.token.expects('update').never()
+
+      await expect(
+        tokenService.refreshAuthTokens(validRefreshToken)
       ).to.be.rejectedWith(httpErrors.Unauthorized)
     })
   })
