@@ -1,6 +1,5 @@
 import crypto from 'crypto'
 import cryptoRandomString from 'crypto-random-string'
-import httpErrors from 'http-errors'
 
 import { env } from '../config/index.js'
 
@@ -35,10 +34,5 @@ export const createOpaqueToken = (userId: string) => {
 
 export const parseOpaqueToken = (token: string) => {
   const [content, iv] = token.split('.')
-
-  try {
-    return decrypt({ content, iv })
-  } catch (e) {
-    throw new httpErrors.Unauthorized('Invalid refresh token')
-  }
+  return decrypt({ content, iv })
 }

@@ -1,5 +1,6 @@
 import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
+import { validate, version } from 'uuid'
 
 import type { FastifyRequest } from 'fastify'
 import type { JWT } from 'fastify-jwt'
@@ -26,7 +27,7 @@ export class TokenService {
   }
 
   refreshAuthTokens = async (token: string) => {
-    const userId = parseOpaqueToken(token)
+    const userId = TokenService.verifyRefreshToken(token)
     let tokenFound: Token | null
 
     try {
@@ -36,15 +37,19 @@ export class TokenService {
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError) {
         if (e.code === 'P2025') {
-          throw new httpErrors.Unauthorized()
+          throw new httpErrors.Unauthorized(
+            'Oops! Looks like the user has been deleted.'
+          )
         }
       }
 
       throw e
     }
 
-    if (!tokenFound || !TokenService.verifyRefreshToken(tokenFound)) {
-      throw new httpErrors.Unauthorized()
+    if (tokenFound && !TokenService.validateToken(tokenFound)) {
+      throw new httpErrors.Unauthorized(
+        'You have logged out or your session has expired. Please log in again.'
+      )
     }
 
     const accessToken = this.generateAccessToken(userId)
@@ -72,7 +77,7 @@ export class TokenService {
       const DAY = 1000 * 60 * 60 * 24
       const newRefreshToken = createOpaqueToken(userId)
       const expires = new Date(Date.now() + DAY * 7)
-      const newTokenData = { userId, token: newRefreshToken, expires }
+      const newToken = { userId, token: newRefreshToken, expires }
 
       if (replaceToken) {
         await this.token.update({
@@ -85,13 +90,13 @@ export class TokenService {
           data: {
             revokedAt: new Date(),
             replacedByToken: {
-              create: newTokenData
+              create: newToken
             }
           }
         })
       } else {
         await this.token.create({
-          data: newTokenData
+          data: newToken
         })
       }
 
@@ -99,7 +104,9 @@ export class TokenService {
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError) {
         if (e.code === 'P2003' || e.code === 'P2025') {
-          throw new httpErrors.Unauthorized()
+          throw new httpErrors.Unauthorized(
+            'You have logged out or your session has expired. Please log in again.'
+          )
         }
       }
 
@@ -108,7 +115,7 @@ export class TokenService {
   }
 
   revokeRefreshToken = async (token: string) => {
-    const userId = parseOpaqueToken(token)
+    const userId = TokenService.verifyRefreshToken(token)
     try {
       await this.token.delete({
         where: { userId_token: { userId, token } }
@@ -128,7 +135,23 @@ export class TokenService {
 
   static verifyJwt = (req: FastifyRequest) => req.jwtVerify()
 
-  static verifyRefreshToken = ({ replacedBy, revokedAt, expires }: Token) => {
+  static verifyRefreshToken = (token: string) => {
+    let userId
+
+    try {
+      userId = parseOpaqueToken(token)
+    } catch (e) {
+      throw new httpErrors.Unauthorized('Invalid refresh token.')
+    }
+
+    if (!validate(userId) || version(userId) !== 4) {
+      throw new httpErrors.Unauthorized('Invalid refresh token.')
+    }
+
+    return userId
+  }
+
+  static validateToken = ({ replacedBy, revokedAt, expires }: Token) => {
     const isExpired = expires < new Date()
     const isRevoked = revokedAt !== null
     const isReplaced = replacedBy !== null
