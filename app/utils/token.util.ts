@@ -33,12 +33,12 @@ export const createOpaqueToken = (userId: string) => {
   return `${content}.${iv}`
 }
 
-export const verifyOpaqueToken = (token: string) => {
+export const parseOpaqueToken = (token: string) => {
   const [content, iv] = token.split('.')
 
   try {
     return decrypt({ content, iv })
   } catch (e) {
-    throw new httpErrors.BadRequest('Invalid refresh token')
+    throw new httpErrors.Unauthorized('Invalid refresh token')
   }
 }

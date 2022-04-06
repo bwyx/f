@@ -3,9 +3,10 @@ import httpErrors from 'http-errors'
 
 import type { FastifyRequest } from 'fastify'
 import type { JWT } from 'fastify-jwt'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient, Token } from '@prisma/client'
 
-import { createOpaqueToken, verifyOpaqueToken } from '../utils/token.util.js'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
+import { createOpaqueToken, parseOpaqueToken } from '../utils/token.util.js'
 
 export class TokenService {
   private token
@@ -19,28 +20,37 @@ export class TokenService {
 
   generateAuthTokens = async (userId: string) => {
     const accessToken = this.generateAccessToken(userId)
-    const { refreshToken } = await this.generateRefreshToken(userId)
+    const refreshToken = await this.generateRefreshToken(userId)
 
     return { accessToken, refreshToken }
   }
 
   refreshAuthTokens = async (token: string) => {
-    const userId = verifyOpaqueToken(token)
-    // Find the refresh token in the database
-    const tokenFound = await this.token.findUnique({
-      where: { userId_token: { userId, token } }
-    })
+    const userId = parseOpaqueToken(token)
+    let tokenFound: Token | null
 
-    // If the refresh token is not found, expired or revoked then throw an error
-    const invalidToken =
-      !tokenFound || tokenFound.expires < new Date() || tokenFound.revokedAt
-    if (invalidToken) {
-      throw new httpErrors.Unauthorized('Please login again')
+    try {
+      tokenFound = await this.token.findUnique({
+        where: { userId_token: { userId, token } }
+      })
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new httpErrors.Unauthorized()
+        }
+      }
+
+      throw e
     }
 
-    // else then revoke the old refresh token replacing it with the new one
+    if (!tokenFound || !TokenService.verifyRefreshToken(tokenFound)) {
+      throw new httpErrors.Unauthorized()
+    }
+
     const accessToken = this.generateAccessToken(userId)
-    const refreshToken = await this.revokeRefreshToken(token, true)
+    const refreshToken = await this.generateRefreshToken(userId, {
+      replaceToken: token
+    })
 
     return { accessToken, refreshToken }
   }
@@ -54,49 +64,77 @@ export class TokenService {
     return accessToken
   }
 
-  generateRefreshToken = async (userId: string) => {
-    const DAY = 1000 * 60 * 60 * 24
+  generateRefreshToken = async (
+    userId: string,
+    { replaceToken }: { replaceToken?: string } = {}
+  ) => {
+    try {
+      const DAY = 1000 * 60 * 60 * 24
+      const newRefreshToken = createOpaqueToken(userId)
+      const expires = new Date(Date.now() + DAY * 7)
+      const newTokenData = { userId, token: newRefreshToken, expires }
 
-    const refreshToken = createOpaqueToken(userId)
-    const expires = new Date(Date.now() + DAY * 7)
-
-    const createdToken = await this.token.create({
-      data: { userId, token: refreshToken, expires }
-    })
-
-    return { createdToken, refreshToken }
-  }
-
-  revokeRefreshToken = async (token: string, replaceByNewToken?: boolean) => {
-    const userId = verifyOpaqueToken(token)
-    if (replaceByNewToken) {
-      const updatedToken = await this.token.update({
-        where: { userId_token: { userId, token } },
-        data: {
-          revokedAt: new Date(),
-          replacedByToken: {
-            create: {
+      if (replaceToken) {
+        await this.token.update({
+          where: {
+            userId_token: {
               userId,
-              token: createOpaqueToken(userId),
-              expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
+              token: replaceToken
+            }
+          },
+          data: {
+            revokedAt: new Date(),
+            replacedByToken: {
+              create: newTokenData
             }
           }
+        })
+      } else {
+        await this.token.create({
+          data: newTokenData
+        })
+      }
+
+      return newRefreshToken
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === 'P2003' || e.code === 'P2025') {
+          throw new httpErrors.Unauthorized()
         }
-      })
+      }
 
-      return updatedToken.replacedBy
+      throw e
     }
+  }
 
-    await this.token.delete({
-      where: { userId_token: { userId, token } }
-    })
+  revokeRefreshToken = async (token: string) => {
+    const userId = parseOpaqueToken(token)
+    try {
+      await this.token.delete({
+        where: { userId_token: { userId, token } }
+      })
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          return
+        }
+      }
 
-    return null
+      throw e
+    }
   }
 
   getUserTokens = (userId: string) => this.token.findMany({ where: { userId } })
 
   static verifyJwt = (req: FastifyRequest) => req.jwtVerify()
+
+  static verifyRefreshToken = ({ replacedBy, revokedAt, expires }: Token) => {
+    const isExpired = expires < new Date()
+    const isRevoked = revokedAt !== null
+    const isReplaced = replacedBy !== null
+
+    return !isExpired && !isRevoked && !isReplaced
+  }
 }
 
 declare module 'fastify' {
