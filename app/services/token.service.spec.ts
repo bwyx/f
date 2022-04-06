@@ -218,7 +218,7 @@ describe('[Service: Token]', () => {
     it('should throw [Unauthorized] if token is invalid', async () => {
       await expect(
         tokenService.revokeRefreshToken(invalidRefreshToken)
-      ).to.be.rejectedWith(httpErrors.Unauthorized, 'ok')
+      ).to.be.rejectedWith(httpErrors.Unauthorized)
     })
 
     it('should not throw if no token record is found', async function () {
