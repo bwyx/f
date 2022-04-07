@@ -20,6 +20,7 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
+    "@lukeed/ms": "^2.0.0",
     "@prisma/client": "^3.11.0",
     "bcrypt": "^5.0.1",
     "crypto-random-string": "^4.0.0",
