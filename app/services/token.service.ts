@@ -8,6 +8,7 @@ import type { PrismaClient, Token } from '@prisma/client'
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 import { createOpaqueToken, parseOpaqueToken } from '../utils/token.util.js'
+import { env } from '../config/index.js'
 
 export class TokenService {
   private token
@@ -63,7 +64,11 @@ export class TokenService {
   generateAccessToken = (userId: string) => {
     const accessToken = this.jwt.sign(
       { sub: userId, type: 'access' },
-      { expiresIn: '30m' }
+      // A numeric value is interpreted as a seconds count.
+      // If you use a string be sure you provide the time units (days, hours, etc.),
+      // otherwise milliseconds unit is used by default ("120" is equal to "120ms").
+      // https://github.com/fastify/fastify-jwt#sign
+      { expiresIn: env.TOKEN_ACCESS_EXPIRATION.toString() }
     )
 
     return accessToken
@@ -74,10 +79,13 @@ export class TokenService {
     { replaceToken }: { replaceToken?: string } = {}
   ) => {
     try {
-      const DAY = 1000 * 60 * 60 * 24
       const newRefreshToken = createOpaqueToken(userId)
-      const expires = new Date(Date.now() + DAY * 7)
-      const newToken = { userId, token: newRefreshToken, expires }
+      const expires = Date.now() + env.TOKEN_REFRESH_EXPIRATION
+      const newToken = {
+        userId,
+        token: newRefreshToken,
+        expires: new Date(expires)
+      }
 
       if (replaceToken) {
         await this.token.update({
