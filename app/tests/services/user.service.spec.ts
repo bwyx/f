@@ -4,9 +4,9 @@ import chai, { expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import httpErrors from 'http-errors'
 
-import { prismaModel } from '../tests/mocks.js'
-import { prismaError } from '../tests/fixtures.js'
-import { UserService } from './user.service.js'
+import { prismaModel } from '../mocks.js'
+import { prismaError } from '../fixtures.js'
+import { UserService } from '../../services/user.service.js'
 
 chai.use(chaiAsPromised)
 

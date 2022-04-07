@@ -6,9 +6,9 @@ import httpErrors from 'http-errors'
 
 import type { Token } from '@prisma/client'
 
-import { prismaModel, jwt } from '../tests/mocks.js'
-import { prismaError } from '../tests/fixtures.js'
-import { TokenService } from './token.service.js'
+import { prismaModel, jwt } from '../mocks.js'
+import { prismaError } from '../fixtures.js'
+import { TokenService } from '../../services/token.service.js'
 
 chai.use(chaiAsPromised)
 
