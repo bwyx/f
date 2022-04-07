@@ -23,7 +23,7 @@
     ],
     "import/no-extraneous-dependencies": [
       "error",
-      { "devDependencies": ["**/*.{test,spec}.{js,ts}"] }
+      { "devDependencies": ["**/*.{spec,ispec}.ts"] }
     ]
   }
 }

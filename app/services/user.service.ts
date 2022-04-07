@@ -1,5 +1,6 @@
 import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
+import { hash } from 'bcrypt'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 
 import type { Prisma, PrismaClient, User } from '@prisma/client'
@@ -17,10 +18,18 @@ export class UserService {
     this.user = _user
   }
 
-  async create(data: IUserCreate) {
+  getUnique = (args: Prisma.UserFindUniqueArgs) => this.user.findUnique(args)
+
+  getFirst = (args: Prisma.UserFindFirstArgs) => this.user.findFirst(args)
+
+  query = (args?: Prisma.UserFindManyArgs) => this.user.findMany(args)
+
+  create = async ({ name, email, password }: IUserCreate) => {
+    const passwordHash = await hash(password, 10)
+
     try {
       return await this.user.create({
-        data,
+        data: { name, email, passwordHash },
         select: {
           id: true,
           name: true,
@@ -38,11 +47,7 @@ export class UserService {
     }
   }
 
-  query(args?: Prisma.UserFindManyArgs) {
-    return this.user.findMany(args)
-  }
-
-  async remove(id: User['id']) {
+  remove = async (id: User['id']) => {
     try {
       return await this.user.delete({ where: { id } })
     } catch (e) {

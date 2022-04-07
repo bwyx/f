@@ -11,10 +11,26 @@ datasource db {
 }
 
 model User {
-  id         String    @id @default(cuid())
-  createdAt  DateTime  @default(now())
-  verifiedAt DateTime?
-  email      String    @unique
-  name       String?
-  password   String?
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt    DateTime  @default(now())
+  verifiedAt   DateTime?
+  email        String    @unique
+  name         String
+  passwordHash String
+  sessions     Token[]
+}
+
+model Token {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token           String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String    @db.Uuid
+  expires         DateTime
+  createdAt       DateTime  @default(now())
+  revokedAt       DateTime?
+  replacedBy      String?   @db.Uuid
+  replacedByToken Token?    @relation("TokenToToken", fields: [replacedBy], references: [id], onDelete: Cascade)
+  tokens          Token[]   @relation("TokenToToken")
+
+  @@unique([userId, token])
 }
