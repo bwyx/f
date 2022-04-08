@@ -62,13 +62,6 @@ export class UserService {
   }
 }
 
-declare module 'fastify' {
-  // eslint-disable-next-line no-unused-vars
-  interface FastifyInstance {
-    userService: UserService
-  }
-}
-
 export default fp(async (fastify) => {
   fastify.decorate('userService', new UserService(fastify.prisma.user))
 })

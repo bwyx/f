@@ -2,7 +2,6 @@ import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
 import { validate, version } from 'uuid'
 
-import type { FastifyRequest } from 'fastify'
 import type { JWT } from 'fastify-jwt'
 import type { PrismaClient, Token } from '@prisma/client'
 
@@ -141,8 +140,6 @@ export class TokenService {
 
   getUserTokens = (userId: string) => this.token.findMany({ where: { userId } })
 
-  static verifyJwt = (req: FastifyRequest) => req.jwtVerify()
-
   static verifyRefreshToken = (token: string) => {
     let userId
 
@@ -168,16 +165,7 @@ export class TokenService {
   }
 }
 
-declare module 'fastify' {
-  // eslint-disable-next-line no-unused-vars, no-shadow
-  interface FastifyInstance {
-    tokenService: TokenService
-    verifyJwt: () => Promise<void>
-  }
-}
-
 export default fp(async (app) => {
   const { prisma, jwt } = app
   app.decorate('tokenService', new TokenService(prisma.token, jwt))
-  app.decorate('verifyJwt', TokenService.verifyJwt)
 })
