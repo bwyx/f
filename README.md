@@ -1,6 +1,8 @@
 # f
 production-ready fastify boilerplate, fully type-safe from database modeling until API response 🤘
 
+[![Run in Insomnia}](https://insomnia.rest/images/run.svg)](https://insomnia.rest/run/?label=f&uri=https%3A%2F%2Fraw.githubusercontent.com%2Fbwyx%2Ff%2Fmain%2Finsomnia.json)
+
 ## Features
 - **Authentication**: JWT using [fast-jwt](https://npm.im/fast-jwt)
 - **Database ORM**: [Prisma](https://www.prisma.io/), supports **PostgreSQL** (configured), **MySQL**, **SQL Server**, **SQLite** and **MongoDB**
@@ -10,3 +12,18 @@ production-ready fastify boilerplate, fully type-safe from database modeling unt
 - **Git hooks**: with [husky](https://github.com/typicode/husky) and [lint-staged](https://github.com/okonet/lint-staged)
 - **Linting**: with [ESLint](https://eslint.org) and [Prettier](https://prettier.io)
 
+### API Endpoints
+
+List of available routes:
+
+**Auth routes**:\
+`POST /auth/register` - register\
+`POST /auth/login` - login\
+`POST /auth/logout` - logout, to invalidate refresh token\
+`GET /auth/sessions` - get all active session\
+`POST /auth/refresh-tokens` - refresh auth tokens
+
+**User routes**:\
+`POST /users` - create a user\
+`GET /users` - get all users\
+`DELETE /users/:userId` - delete user
