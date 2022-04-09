@@ -18,6 +18,25 @@ model User {
   name         String
   passwordHash String
   sessions     Token[]
+  devices      Device[]
+}
+
+model Device {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String    @db.Uuid
+  vendor         String
+  model          String
+  type           String
+  os             String
+  osVersion      String
+  browser        String
+  browserVersion String
+  lastSeenAt     DateTime?
+  tokens         Token[]
+
+  @@unique([userId, vendor, model, type, os, browser])
 }
 
 model Token {
@@ -25,6 +44,8 @@ model Token {
   token           String
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          String    @db.Uuid
+  device          Device    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  deviceId        String    @db.Uuid
   expires         DateTime
   createdAt       DateTime  @default(now())
   revokedAt       DateTime?
