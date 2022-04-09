@@ -28,6 +28,7 @@ describe('[Service: Token]', () => {
   })
 
   const userId = '4508dec3-0b0a-40b8-8ba7-77eff6e50dbb'
+  const deviceId = '0763edfc-b1fd-46f2-bd2e-1968cfb4685e'
   const validRefreshToken = `BLoPuBmb2MvIgeh5EQNzaYNb2c8Gm7r+t9L2MG+GaXfvwgXH.eh/9kq16NH7Cuwqy`
   const invalidRefreshToken = `invalidRefreshToken`
 
@@ -43,8 +44,8 @@ describe('[Service: Token]', () => {
       this.token.expects('create').once()
       this.token.expects('update').never()
 
-      await expect(tokenService.generateRefreshToken(userId)).to.be.eventually
-        .fulfilled
+      await expect(tokenService.generateRefreshToken({ userId, deviceId })).to
+        .be.eventually.fulfilled
     })
 
     it('should call `update()` once when replacing an old token', async function () {
@@ -52,7 +53,9 @@ describe('[Service: Token]', () => {
       this.token.expects('create').never()
 
       await expect(
-        tokenService.generateRefreshToken(userId, {
+        tokenService.generateRefreshToken({
+          userId,
+          deviceId,
           replaceToken: 'old_token'
         })
       ).to.be.eventually.fulfilled
@@ -63,7 +66,10 @@ describe('[Service: Token]', () => {
       this.token.expects('create').throws(error)
 
       await expect(
-        tokenService.generateRefreshToken('nonExistUserId')
+        tokenService.generateRefreshToken({
+          userId: 'nonExistUserId',
+          deviceId
+        })
       ).to.be.rejectedWith(httpErrors.Unauthorized)
     })
 
@@ -72,7 +78,9 @@ describe('[Service: Token]', () => {
       this.token.expects('update').throws(error)
 
       await expect(
-        tokenService.generateRefreshToken(userId, {
+        tokenService.generateRefreshToken({
+          userId,
+          deviceId,
           replaceToken: 'nonExistToken'
         })
       ).to.be.rejectedWith(httpErrors.Unauthorized)
@@ -85,7 +93,8 @@ describe('[Service: Token]', () => {
     const tokenData = {
       id: '6c92d1b9-bc51-40f6-9a78-fb1e4d7fa976',
       token: validRefreshToken,
-      userId
+      userId,
+      deviceId
     }
 
     const activeToken: Token = {

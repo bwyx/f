@@ -9,6 +9,15 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 import { createOpaqueToken, parseOpaqueToken } from '../utils/token.util.js'
 import { env } from '../config/index.js'
 
+interface IGenerateAuthTokens {
+  userId: string
+  deviceId: string
+}
+
+interface IGenerateRefreshToken extends IGenerateAuthTokens {
+  replaceToken?: string
+}
+
 export class TokenService {
   private token
 
@@ -19,9 +28,9 @@ export class TokenService {
     this.jwt = _jwt
   }
 
-  generateAuthTokens = async (userId: string) => {
+  generateAuthTokens = async ({ userId, deviceId }: IGenerateAuthTokens) => {
     const accessToken = this.generateAccessToken(userId)
-    const refreshToken = await this.generateRefreshToken(userId)
+    const refreshToken = await this.generateRefreshToken({ userId, deviceId })
 
     return { accessToken, refreshToken }
   }
@@ -46,14 +55,16 @@ export class TokenService {
       throw e
     }
 
-    if (tokenFound && !TokenService.validateToken(tokenFound)) {
+    if (!tokenFound || !TokenService.validateToken(tokenFound)) {
       throw new httpErrors.Unauthorized(
         'You have logged out or your session has expired. Please log in again.'
       )
     }
 
     const accessToken = this.generateAccessToken(userId)
-    const refreshToken = await this.generateRefreshToken(userId, {
+    const refreshToken = await this.generateRefreshToken({
+      userId,
+      deviceId: tokenFound.deviceId,
       replaceToken: token
     })
 
@@ -73,15 +84,17 @@ export class TokenService {
     return accessToken
   }
 
-  generateRefreshToken = async (
-    userId: string,
-    { replaceToken }: { replaceToken?: string } = {}
-  ) => {
+  generateRefreshToken = async ({
+    userId,
+    deviceId,
+    replaceToken
+  }: IGenerateRefreshToken) => {
     try {
       const newRefreshToken = createOpaqueToken(userId)
       const expires = Date.now() + env.TOKEN_REFRESH_EXPIRATION
       const newToken = {
         userId,
+        deviceId,
         token: newRefreshToken,
         expires: new Date(expires)
       }
