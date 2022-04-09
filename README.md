@@ -1,9 +1,11 @@
 # f
+
 production-ready fastify boilerplate, fully type-safe from database modeling until API response 🤘
 
 [![Run in Insomnia}](https://insomnia.rest/images/run.svg)](https://insomnia.rest/run/?label=f&uri=https%3A%2F%2Fraw.githubusercontent.com%2Fbwyx%2Ff%2Fmain%2Finsomnia.json)
 
 ## Features
+
 - **Authentication**: JWT using [fast-jwt](https://npm.im/fast-jwt)
 - **Database ORM**: [Prisma](https://www.prisma.io/), supports **PostgreSQL** (configured), **MySQL**, **SQL Server**, **SQLite** and **MongoDB**
 - **Validation**: request-response validation using [Ajv](https://ajv.js.org/)
