@@ -11,11 +11,14 @@ import {
 } from '../validations/auth.schema.js'
 
 class AuthController {
+  private deviceService
+
   private userService
 
   private tokenService
 
   constructor(app: FastifyInstance) {
+    this.deviceService = app.deviceService
     this.userService = app.userService
     this.tokenService = app.tokenService
   }
@@ -33,6 +36,7 @@ class AuthController {
   login: RouteHandler<{
     Body: FromSchema<typeof loginBody>
   }> = async (req, rep) => {
+    const userAgent = req.headers['user-agent']
     const { email, password } = req.body
     const user = await this.userService.getUnique({
       where: { email }
@@ -52,7 +56,17 @@ class AuthController {
       return
     }
 
-    rep.send(await this.tokenService.generateAuthTokens(user.id))
+    const device = await this.deviceService.authenticateUserFromDevice(
+      user.id,
+      userAgent
+    )
+
+    rep.send(
+      await this.tokenService.generateAuthTokens({
+        userId: user.id,
+        deviceId: device.id
+      })
+    )
   }
 
   logout: RouteHandler<{
@@ -68,6 +82,12 @@ class AuthController {
     const { sub } = req.user
 
     rep.send(await this.tokenService.getUserTokens(sub))
+  }
+
+  getDevices: RouteHandler = async (req, rep) => {
+    const { sub } = req.user
+
+    rep.send(await this.deviceService.getUserDevices(sub))
   }
 
   refreshTokens: RouteHandler<{

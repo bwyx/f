@@ -38,6 +38,13 @@ const routes: FastifyPluginAsync = async (app): Promise<void> => {
   })
 
   app.route({
+    method: 'GET',
+    url: '/devices',
+    onRequest: verifyJwt,
+    handler: authController.getDevices
+  })
+
+  app.route({
     method: 'POST',
     url: '/refresh-tokens',
     schema: { headers: authorizationHeaders },
