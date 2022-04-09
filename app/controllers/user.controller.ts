@@ -36,3 +36,10 @@ class UserController {
 export default fp(async (app) =>
   app.decorate('userController', new UserController(app))
 )
+
+declare module 'fastify' {
+  // eslint-disable-next-line no-shadow, no-unused-vars
+  interface FastifyInstance {
+    userController: UserController
+  }
+}

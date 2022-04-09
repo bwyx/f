@@ -169,3 +169,10 @@ export default fp(async (app) => {
   const { prisma, jwt } = app
   app.decorate('tokenService', new TokenService(prisma.token, jwt))
 })
+
+declare module 'fastify' {
+  // eslint-disable-next-line no-unused-vars
+  interface FastifyInstance {
+    tokenService: TokenService
+  }
+}

@@ -84,3 +84,10 @@ class AuthController {
 export default fp(async (app) =>
   app.decorate('authController', new AuthController(app))
 )
+
+declare module 'fastify' {
+  // eslint-disable-next-line no-shadow, no-unused-vars
+  interface FastifyInstance {
+    authController: AuthController
+  }
+}
