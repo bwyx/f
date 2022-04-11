@@ -9,7 +9,7 @@ import { env } from '../config/index.js'
 
 const key32 = (key: string) => key.substring(0, 32)
 
-export class TokenUtil {
+export class TokenModule {
   private jwt
 
   private key
@@ -132,12 +132,12 @@ export class TokenUtil {
 }
 
 export default fp(async (app) => {
-  app.decorate('tokenUtil', new TokenUtil(app.jwt))
+  app.decorate('tokenModule', new TokenModule(app.jwt))
 })
 
 declare module 'fastify' {
   // eslint-disable-next-line no-unused-vars
   interface FastifyInstance {
-    tokenUtil: TokenUtil
+    tokenModule: TokenModule
   }
 }

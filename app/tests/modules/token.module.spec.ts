@@ -5,14 +5,14 @@ import chaiAsPromised from 'chai-as-promised'
 import httpErrors from 'http-errors'
 
 import { jwt } from '../mocks.js'
-import { TokenUtil } from '../../utils/token.util.js'
+import { TokenModule } from '../../modules/token.module.js'
 
 chai.use(chaiAsPromised)
 
 describe('[Utilities: Token]', () => {
   const key = 'TEST_CcJWC4NvmVknXfcRvksqpsdtXwGP5SPj'
 
-  const tokenService = new TokenUtil(jwt, key)
+  const tokenModule = new TokenModule(jwt, key)
 
   beforeEach(function () {
     this.jwt = sinon.mock(jwt)
@@ -29,7 +29,7 @@ describe('[Utilities: Token]', () => {
     it('should call `jwt.sign()` once', function () {
       this.jwt.expects('sign').once()
 
-      tokenService.generateAccessToken(userId)
+      tokenModule.generateAccessToken(userId)
     })
   })
 
@@ -37,8 +37,8 @@ describe('[Utilities: Token]', () => {
     it('should be able to decrypt encrypted-payload', () => {
       const text = 'hello you can see me'
 
-      const encrypted = tokenService.encrypt(text)
-      const decrypted = tokenService.decrypt(encrypted)
+      const encrypted = tokenModule.encrypt(text)
+      const decrypted = tokenModule.decrypt(encrypted)
 
       expect(encrypted.content).not.equal(text)
       expect(decrypted).equal(text)
@@ -50,15 +50,15 @@ describe('[Utilities: Token]', () => {
     const inauthenticData = 'this data is authentic. trust me'
 
     it('should be able to verify signature', () => {
-      const signature = tokenService.createSignature(data)
-      const isAuthentic = tokenService.verifySignature(data, signature)
+      const signature = tokenModule.createSignature(data)
+      const isAuthentic = tokenModule.verifySignature(data, signature)
 
       expect(isAuthentic).to.equal(true)
     })
 
     it('should not verify inauthentic data', () => {
-      const signature = tokenService.createSignature(data)
-      const isAuthentic = tokenService.verifySignature(
+      const signature = tokenModule.createSignature(data)
+      const isAuthentic = tokenModule.verifySignature(
         inauthenticData,
         signature
       )
@@ -71,11 +71,11 @@ describe('[Utilities: Token]', () => {
     it('should be able to process symbols', () => {
       const symbols = `~!@#$%^&*()_+-={}[]:";<>,.?/'`
 
-      const opaqueToken = tokenService.createOpaqueToken(
+      const opaqueToken = tokenModule.createOpaqueToken(
         symbols,
         'abcdefghijklmnop'
       )
-      const parsedOpaqueToken = tokenService.parseOpaqueToken(opaqueToken)
+      const parsedOpaqueToken = tokenModule.parseOpaqueToken(opaqueToken)
 
       expect(parsedOpaqueToken).to.be.equal(symbols)
     })
@@ -85,9 +85,9 @@ describe('[Utilities: Token]', () => {
     const nonce = 'pWRHSFiGmlMotmDM'
 
     it('should be able to verify and parse generated refresh token', () => {
-      const refreshToken = tokenService.generateRefreshToken(userId, nonce)
+      const refreshToken = tokenModule.generateRefreshToken(userId, nonce)
       const { userId: tokenUserId, tokenNonce } =
-        tokenService.verifyRefreshToken(refreshToken)
+        tokenModule.verifyRefreshToken(refreshToken)
 
       expect(tokenUserId).equal(userId)
       expect(tokenNonce).equal(nonce)
@@ -97,7 +97,7 @@ describe('[Utilities: Token]', () => {
       const expectedError = httpErrors.Unauthorized
       const ERROR_MESSAGE = 'Invalid refresh token'
 
-      const refreshToken = tokenService.generateRefreshToken(userId, nonce)
+      const refreshToken = tokenModule.generateRefreshToken(userId, nonce)
 
       const modifiedTokens = [
         'randomguytryingtoguessthetoken',
@@ -108,7 +108,7 @@ describe('[Utilities: Token]', () => {
       ]
 
       modifiedTokens.forEach((token) => {
-        const verify = () => tokenService.verifyRefreshToken(token)
+        const verify = () => tokenModule.verifyRefreshToken(token)
 
         expect(verify).to.throw(expectedError, ERROR_MESSAGE)
       })
