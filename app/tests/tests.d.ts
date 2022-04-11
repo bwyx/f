@@ -4,7 +4,6 @@ declare module 'mocha' {
   export interface Context {
     jwt: SinonMock
     session: SinonMock
-    tokenModule: SinonMock
     user: SinonMock
   }
 }

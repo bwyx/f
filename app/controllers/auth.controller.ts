@@ -15,9 +15,12 @@ class AuthController {
 
   private sessionService
 
+  private tokenService
+
   constructor(app: FastifyInstance) {
     this.userService = app.userService
     this.sessionService = app.sessionService
+    this.tokenService = app.tokenService
   }
 
   register: RouteHandler<{
@@ -52,7 +55,13 @@ class AuthController {
       return
     }
 
-    rep.send(await this.sessionService.createSession(user.id))
+    const nonce = this.tokenService.generateNonce()
+    await this.sessionService.createSession({ userId: user.id, nonce })
+
+    rep.send({
+      accessToken: this.tokenService.generateAccessToken(user.id),
+      refreshToken: this.tokenService.generateRefreshToken(user.id, nonce)
+    })
   }
 
   // logout: RouteHandler<{
@@ -75,9 +84,19 @@ class AuthController {
   }> = async (req, rep) => {
     const refreshToken = req.headers.authorization.split(' ')[1]
 
-    const tokens = await this.sessionService.refreshSession(refreshToken)
+    const { userId, nextNonce, tokenNonce } =
+      this.tokenService.verifyRefreshToken(refreshToken)
 
-    rep.send(tokens)
+    await this.sessionService.updateSession({
+      userId,
+      nonce: tokenNonce,
+      nextNonce
+    })
+
+    rep.send({
+      accessToken: this.tokenService.generateAccessToken(userId),
+      refreshToken: this.tokenService.generateRefreshToken(userId, nextNonce)
+    })
   }
 }
 
