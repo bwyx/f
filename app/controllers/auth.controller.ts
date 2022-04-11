@@ -13,11 +13,11 @@ import {
 class AuthController {
   private userService
 
-  private tokenService
+  private sessionService
 
   constructor(app: FastifyInstance) {
     this.userService = app.userService
-    this.tokenService = app.tokenService
+    this.sessionService = app.sessionService
   }
 
   register: RouteHandler<{
@@ -52,30 +52,30 @@ class AuthController {
       return
     }
 
-    rep.send(await this.tokenService.generateAuthTokens(user.id))
+    rep.send(await this.sessionService.createSession(user.id))
   }
 
-  logout: RouteHandler<{
-    Headers: FromSchema<typeof authorizationHeaders>
-  }> = async (req, rep) => {
-    const refreshToken = req.headers.authorization.split(' ')[1]
-    await this.tokenService.revokeRefreshToken(refreshToken)
+  // logout: RouteHandler<{
+  //   Headers: FromSchema<typeof authorizationHeaders>
+  // }> = async (req, rep) => {
+  //   const refreshToken = req.headers.authorization.split(' ')[1]
+  //   await this.sessionService.revokeSession(refreshToken)
 
-    rep.code(204)
-  }
+  //   rep.code(204)
+  // }
 
-  getSessions: RouteHandler = async (req, rep) => {
-    const { sub } = req.user
+  // getSessions: RouteHandler = async (req, rep) => {
+  //   const { sub } = req.user
 
-    rep.send(await this.tokenService.getUserTokens(sub))
-  }
+  //   rep.send(await this.sessionService.getAllSessions(sub))
+  // }
 
   refreshTokens: RouteHandler<{
     Headers: FromSchema<typeof authorizationHeaders>
   }> = async (req, rep) => {
     const refreshToken = req.headers.authorization.split(' ')[1]
 
-    const tokens = await this.tokenService.refreshAuthTokens(refreshToken)
+    const tokens = await this.sessionService.refreshSession(refreshToken)
 
     rep.send(tokens)
   }
