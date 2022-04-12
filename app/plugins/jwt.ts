@@ -35,6 +35,7 @@ declare module 'fastify-jwt' {
     // payload type is used for signing and verifying
     payload: {
       sub: string
+      jti: string
     }
   }
 }

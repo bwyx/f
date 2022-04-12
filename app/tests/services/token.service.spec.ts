@@ -24,12 +24,13 @@ describe('[Service: Token]', () => {
   })
 
   const userId = '77976d43-c76e-4b0c-943c-342b0f7d6cc4'
+  const nonce = 'pWRHSFiGmlMotmDM'
 
   describe('generateAccessToken()', () => {
     it('should call `jwt.sign()` once', function () {
       this.jwt.expects('sign').once()
 
-      tokenService.generateAccessToken(userId)
+      tokenService.generateAccessToken(userId, nonce)
     })
   })
 
@@ -82,8 +83,6 @@ describe('[Service: Token]', () => {
   })
 
   describe('generate-verifyRefreshToken()', () => {
-    const nonce = 'pWRHSFiGmlMotmDM'
-
     it('should be able to verify and parse generated refresh token', () => {
       const refreshToken = tokenService.generateRefreshToken(userId, nonce)
       const { userId: tokenUserId, tokenNonce } =

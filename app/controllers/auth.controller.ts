@@ -59,7 +59,7 @@ class AuthController {
     await this.sessionService.createSession({ userId: user.id, nonce })
 
     rep.send({
-      accessToken: this.tokenService.generateAccessToken(user.id),
+      accessToken: this.tokenService.generateAccessToken(user.id, nonce),
       refreshToken: this.tokenService.generateRefreshToken(user.id, nonce)
     })
   }
@@ -94,7 +94,7 @@ class AuthController {
     })
 
     rep.send({
-      accessToken: this.tokenService.generateAccessToken(userId),
+      accessToken: this.tokenService.generateAccessToken(userId, nextNonce),
       refreshToken: this.tokenService.generateRefreshToken(userId, nextNonce)
     })
   }

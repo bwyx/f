@@ -97,9 +97,9 @@ export class TokenService {
     return Buffer.from(base64Payload, 'base64').toString('utf-8')
   }
 
-  generateAccessToken = (userId: string) => {
+  generateAccessToken = (userId: string, nonce: string) => {
     const accessToken = this.jwt.sign(
-      { sub: userId },
+      { sub: userId, jti: nonce },
       // A numeric value is interpreted as a seconds count.
       // If you use a string be sure you provide the time units (days, hours, etc.),
       // otherwise milliseconds unit is used by default ("120" is equal to "120ms").
