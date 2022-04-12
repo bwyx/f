@@ -1,5 +1,4 @@
 import fp from 'fastify-plugin'
-import httpErrors from 'http-errors'
 
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 import type { Prisma, PrismaClient } from '@prisma/client'
@@ -7,7 +6,9 @@ import type { Prisma, PrismaClient } from '@prisma/client'
 import { env } from '../config/index.js'
 
 type SessionCompoundUnique = Prisma.SessionUserIdNonceCompoundUniqueInput
-type UpdateSession = SessionCompoundUnique & {
+interface UpdateSession {
+  sessionId: string
+  nonce: string
   nextNonce: string
 }
 
@@ -26,20 +27,26 @@ export class SessionService {
     })
   }
 
-  updateSession = async ({ userId, nonce, nextNonce }: UpdateSession) => {
+  refreshSession = async ({ sessionId, nonce, nextNonce }: UpdateSession) => {
     const expires = new Date(Date.now() + env.TOKEN_REFRESH_EXPIRATION)
 
-    try {
-      await this.session.update({
-        where: { userId_nonce: { userId, nonce } },
-        data: { nonce: nextNonce, expires }
-      })
-    } catch (e) {
-      throw new httpErrors.Unauthorized('Session Not Found')
+    const session = await this.session.findUnique({
+      where: { id: sessionId },
+      rejectOnNotFound: () => new Error('Please login again')
+    })
+
+    if (session.nonce !== nonce) {
+      // TODO: end this whole session, nonce mismatch is a sign session has been compromised
+      throw new Error('It seems like you are not logged in')
     }
+
+    return this.session.update({
+      where: { id: sessionId },
+      data: { nonce: nextNonce, expires }
+    })
   }
 
-  listSessions = async (userId: string) =>
+  listSessions = async ({ userId }: { userId: string }) =>
     this.session.findMany({
       where: { userId }
     })
