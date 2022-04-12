@@ -25,6 +25,7 @@ describe('[Service: Session]', () => {
 
   const UUID = '77976d43-c76e-4b0c-943c-342b0f7d6cc4'
   const NONCE = 'WiNcmEgU+0n3GOdf'
+  const OLD_INVALID_NONCE = 'o1DInv4l1d-nO7c3'
   const ONE_SECOND = 1000
 
   const session: Session = {
@@ -71,7 +72,7 @@ describe('[Service: Session]', () => {
       ).to.eventually.equal(session)
     })
 
-    it('should not refresh session if no session record found', async function () {
+    it('should not refresh the session if no session record is found', async function () {
       this.session.expects('findUnique').once().rejects()
       this.session.expects('update').never()
 
@@ -84,14 +85,27 @@ describe('[Service: Session]', () => {
       ).to.eventually.be.rejectedWith(Error)
     })
 
-    it('should not refresh session if the nonce is not the same as in database', async function () {
+    it('should not refresh the session if the nonce is not the same as in the database', async function () {
       this.session.expects('findUnique').once().returns(session)
       this.session.expects('update').never()
 
       await expect(
         sessionService.refreshSession({
           sessionId: UUID,
-          nonce: 'invalid',
+          nonce: OLD_INVALID_NONCE,
+          nextNonce: NONCE
+        })
+      ).to.eventually.be.rejectedWith(Error)
+    })
+
+    it('should delete the session if the nonce is not the same as in the database', async function () {
+      this.session.expects('findUnique').once().returns(session)
+      this.session.expects('delete').once().returns(session)
+
+      await expect(
+        sessionService.refreshSession({
+          sessionId: UUID,
+          nonce: OLD_INVALID_NONCE,
           nextNonce: NONCE
         })
       ).to.eventually.be.rejectedWith(Error)
