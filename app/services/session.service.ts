@@ -28,11 +28,13 @@ export class SessionService {
   }
 
   refreshSession = async ({ sessionId, nonce, nextNonce }: UpdateSession) => {
-    const expires = new Date(Date.now() + env.TOKEN_REFRESH_EXPIRATION)
+    const now = new Date()
+    const newExpires = new Date(Date.now() + env.TOKEN_REFRESH_EXPIRATION)
 
     const session = await this.session.findUnique({
       where: { id: sessionId },
-      rejectOnNotFound: () => new Error('Please login again')
+      rejectOnNotFound: () =>
+        new Error('It seems like you have been logged out. Please login again')
     })
 
     if (session.nonce !== nonce) {
@@ -40,9 +42,14 @@ export class SessionService {
       throw new Error('It seems like you are not logged in')
     }
 
+    if (session.expires < now) {
+      // TODO: should delete this session(?) or preserve it for session history?
+      throw new Error('Session has expired. Please login again')
+    }
+
     return this.session.update({
       where: { id: sessionId },
-      data: { nonce: nextNonce, expires }
+      data: { nonce: nextNonce, expires: newExpires }
     })
   }
 
