@@ -2,7 +2,6 @@
 import sinon from 'sinon'
 import chai, { expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import httpErrors from 'http-errors'
 
 import { jwt } from '../mocks.js'
 import { TokenService } from '../../services/token.service.js'
@@ -23,14 +22,16 @@ describe('[Service: Token]', () => {
     this.jwt.restore()
   })
 
-  const userId = '77976d43-c76e-4b0c-943c-342b0f7d6cc4'
-  const nonce = 'pWRHSFiGmlMotmDM'
+  const UUID = '77976d43-c76e-4b0c-943c-342b0f7d6cc4'
+  const NONCE = 'pWRHSFiGmlMotmDM'
 
   describe('generateAccessToken()', () => {
-    it('should call `jwt.sign()` once', function () {
-      this.jwt.expects('sign').once()
+    it('should create a new jwt token', function () {
+      this.jwt.expects('sign').once().returns('someRandomJWTToken')
 
-      tokenService.generateAccessToken(userId, nonce)
+      expect(
+        tokenService.generateAccessToken({ userId: UUID, nonce: NONCE })
+      ).to.be.a('string')
     })
   })
 
@@ -83,20 +84,31 @@ describe('[Service: Token]', () => {
   })
 
   describe('generate-verifyRefreshToken()', () => {
-    it('should be able to verify and parse generated refresh token', () => {
-      const refreshToken = tokenService.generateRefreshToken(userId, nonce)
-      const { userId: tokenUserId, tokenNonce } =
-        tokenService.verifyRefreshToken(refreshToken)
+    it('should generate a refreshToken', () => {
+      const refreshToken = tokenService.generateRefreshToken({
+        sessionId: UUID,
+        nonce: NONCE
+      })
 
-      expect(tokenUserId).equal(userId)
-      expect(tokenNonce).equal(nonce)
+      expect(refreshToken).to.be.a('string')
+    })
+
+    it('should be able to verify and parse generated refresh token', () => {
+      const refreshToken = tokenService.generateRefreshToken({
+        sessionId: UUID,
+        nonce: NONCE
+      })
+      const valid = tokenService.verifyRefreshToken(refreshToken)
+
+      expect(valid.sessionId).equal(UUID)
+      expect(valid.tokenNonce).equal(NONCE)
     })
 
     it('should not verify modified refresh tokens', () => {
-      const expectedError = httpErrors.Unauthorized
-      const ERROR_MESSAGE = 'Invalid refresh token'
-
-      const refreshToken = tokenService.generateRefreshToken(userId, nonce)
+      const refreshToken = tokenService.generateRefreshToken({
+        sessionId: UUID,
+        nonce: NONCE
+      })
 
       const modifiedTokens = [
         'randomguytryingtoguessthetoken',
@@ -109,7 +121,7 @@ describe('[Service: Token]', () => {
       modifiedTokens.forEach((token) => {
         const verify = () => tokenService.verifyRefreshToken(token)
 
-        expect(verify).to.throw(expectedError, ERROR_MESSAGE)
+        expect(verify).to.throw(Error, 'Invalid refresh token')
       })
     })
   })
