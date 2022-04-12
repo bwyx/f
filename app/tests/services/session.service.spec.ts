@@ -56,18 +56,44 @@ describe('[Service: Session]', () => {
     })
   })
 
-  describe('updateSession()', () => {
-    it('should update a session', async function () {
+  describe('refreshSession()', () => {
+    it('should refresh a session', async function () {
       this.session.expects('findUnique').once().returns(session)
       this.session.expects('update').once().returns(session)
 
       await expect(
-        sessionService.updateSession({
+        sessionService.refreshSession({
           sessionId: UUID,
           nonce: NONCE,
           nextNonce: NONCE
         })
       ).to.eventually.equal(session)
+    })
+
+    it('should not refresh session if no session record found', async function () {
+      this.session.expects('findUnique').once().rejects()
+      this.session.expects('update').never()
+
+      await expect(
+        sessionService.refreshSession({
+          sessionId: UUID,
+          nonce: NONCE,
+          nextNonce: NONCE
+        })
+      ).to.eventually.be.rejectedWith(Error)
+    })
+
+    it('should not refresh session if the nonce is not the same as in database', async function () {
+      this.session.expects('findUnique').once().returns(session)
+      this.session.expects('update').never()
+
+      await expect(
+        sessionService.refreshSession({
+          sessionId: UUID,
+          nonce: 'invalid',
+          nextNonce: NONCE
+        })
+      ).to.eventually.be.rejectedWith(Error)
     })
   })
 
