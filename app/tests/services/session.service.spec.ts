@@ -25,13 +25,14 @@ describe('[Service: Session]', () => {
 
   const UUID = '77976d43-c76e-4b0c-943c-342b0f7d6cc4'
   const NONCE = 'WiNcmEgU+0n3GOdf'
+  const ONE_SECOND = 1000
 
   const session: Session = {
     id: UUID,
     userId: UUID,
-    createdAt: new Date(),
+    createdAt: new Date(Date.now() - ONE_SECOND),
     nonce: NONCE,
-    expires: new Date()
+    expires: new Date(Date.now() + ONE_SECOND)
   }
 
   describe('createSession()', () => {
@@ -91,6 +92,24 @@ describe('[Service: Session]', () => {
         sessionService.refreshSession({
           sessionId: UUID,
           nonce: 'invalid',
+          nextNonce: NONCE
+        })
+      ).to.eventually.be.rejectedWith(Error)
+    })
+
+    it('should not refresh the session if it has expired', async function () {
+      const expiredSession = {
+        ...session,
+        expires: new Date(Date.now() - ONE_SECOND)
+      }
+
+      this.session.expects('findUnique').once().returns(expiredSession)
+      this.session.expects('update').never()
+
+      await expect(
+        sessionService.refreshSession({
+          sessionId: UUID,
+          nonce: NONCE,
           nextNonce: NONCE
         })
       ).to.eventually.be.rejectedWith(Error)
