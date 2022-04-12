@@ -7,7 +7,7 @@ import {
 } from '../../validations/auth.schema.js'
 
 const routes: FastifyPluginAsync = async (app): Promise<void> => {
-  const { authController } = app
+  const { authController, verifyJwt } = app
 
   app.route({
     method: 'POST',
@@ -30,12 +30,12 @@ const routes: FastifyPluginAsync = async (app): Promise<void> => {
   //   handler: authController.logout
   // })
 
-  // app.route({
-  //   method: 'GET',
-  //   url: '/sessions',
-  //   onRequest: verifyJwt,
-  //   handler: authController.getSessions
-  // })
+  app.route({
+    method: 'GET',
+    url: '/sessions',
+    preHandler: verifyJwt,
+    handler: authController.getSessions
+  })
 
   app.route({
     method: 'POST',

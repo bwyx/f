@@ -1,16 +1,12 @@
 import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
 
-import type { PrismaClient } from '@prisma/client'
+import type { Prisma, PrismaClient } from '@prisma/client'
 
 import { env } from '../config/index.js'
 
-interface CreateSession {
-  userId: string
-  nonce: string
-}
-
-interface UpdateSession extends CreateSession {
+type SessionCompoundUnique = Prisma.SessionUserIdNonceCompoundUniqueInput
+type UpdateSession = SessionCompoundUnique & {
   nextNonce: string
 }
 
@@ -21,7 +17,7 @@ export class SessionService {
     this.session = _session
   }
 
-  createSession = async ({ userId, nonce }: CreateSession) => {
+  createSession = async ({ userId, nonce }: SessionCompoundUnique) => {
     const expires = new Date(Date.now() + env.TOKEN_REFRESH_EXPIRATION)
 
     return this.session.create({
@@ -41,6 +37,11 @@ export class SessionService {
       throw new httpErrors.Unauthorized('Session Not Found')
     }
   }
+
+  listSessions = async (userId: string) =>
+    this.session.findMany({
+      where: { userId }
+    })
 }
 
 export default fp(async (app) => {

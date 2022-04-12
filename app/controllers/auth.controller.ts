@@ -73,11 +73,11 @@ class AuthController {
   //   rep.code(204)
   // }
 
-  // getSessions: RouteHandler = async (req, rep) => {
-  //   const { sub } = req.user
+  getSessions: RouteHandler = async (req, rep) => {
+    const { sub } = req.user
 
-  //   rep.send(await this.sessionService.getAllSessions(sub))
-  // }
+    rep.send(await this.sessionService.listSessions(sub))
+  }
 
   refreshTokens: RouteHandler<{
     Headers: FromSchema<typeof authorizationHeaders>
