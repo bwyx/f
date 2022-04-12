@@ -38,7 +38,10 @@ export class SessionService {
     })
 
     if (session.nonce !== nonce) {
-      // TODO: end this whole session, nonce mismatch is a sign session has been compromised
+      // a nonce mismatch is a sign of session has been compromised
+      // end this whole session since it's possible that the attacker has the current session,
+      // and this attempt is from the victim that needs to refresh the session
+      await this.session.delete({ where: { id: sessionId } })
       throw new Error('It seems like you are not logged in')
     }
 
