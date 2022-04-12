@@ -26,14 +26,14 @@ const routes: FastifyPluginAsync = async (app): Promise<void> => {
   app.route({
     method: 'POST',
     url: '/logout',
-    schema: { headers: authorizationHeaders },
+    preHandler: verifyJwt,
     handler: authController.logout
   })
 
   app.route({
     method: 'GET',
     url: '/sessions',
-    onRequest: verifyJwt,
+    preHandler: verifyJwt,
     handler: authController.getSessions
   })
 

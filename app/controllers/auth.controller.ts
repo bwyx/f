@@ -13,10 +13,13 @@ import {
 class AuthController {
   private userService
 
+  private sessionService
+
   private tokenService
 
   constructor(app: FastifyInstance) {
     this.userService = app.userService
+    this.sessionService = app.sessionService
     this.tokenService = app.tokenService
   }
 
@@ -52,14 +55,28 @@ class AuthController {
       return
     }
 
-    rep.send(await this.tokenService.generateAuthTokens(user.id))
+    const nonce = this.tokenService.generateNonce()
+    const createdSession = await this.sessionService.createSession({
+      userId: user.id,
+      nonce
+    })
+
+    rep.send({
+      accessToken: this.tokenService.generateAccessToken({
+        userId: user.id,
+        nonce
+      }),
+      refreshToken: this.tokenService.generateRefreshToken({
+        sessionId: createdSession.id,
+        nonce
+      })
+    })
   }
 
-  logout: RouteHandler<{
-    Headers: FromSchema<typeof authorizationHeaders>
-  }> = async (req, rep) => {
-    const refreshToken = req.headers.authorization.split(' ')[1]
-    await this.tokenService.revokeRefreshToken(refreshToken)
+  logout: RouteHandler = async (req, rep) => {
+    // TODO: blacklist access token
+    const { sub, jti } = req.user
+    await this.sessionService.deleteSession({ userId: sub, nonce: jti })
 
     rep.code(204)
   }
@@ -67,7 +84,7 @@ class AuthController {
   getSessions: RouteHandler = async (req, rep) => {
     const { sub } = req.user
 
-    rep.send(await this.tokenService.getUserTokens(sub))
+    rep.send(await this.sessionService.listSessions({ userId: sub }))
   }
 
   refreshTokens: RouteHandler<{
@@ -75,9 +92,25 @@ class AuthController {
   }> = async (req, rep) => {
     const refreshToken = req.headers.authorization.split(' ')[1]
 
-    const tokens = await this.tokenService.refreshAuthTokens(refreshToken)
+    const { sessionId, nextNonce, tokenNonce } =
+      this.tokenService.verifyRefreshToken(refreshToken)
 
-    rep.send(tokens)
+    const updatedSession = await this.sessionService.refreshSession({
+      sessionId,
+      nonce: tokenNonce,
+      nextNonce
+    })
+
+    rep.send({
+      accessToken: this.tokenService.generateAccessToken({
+        userId: updatedSession.userId,
+        nonce: nextNonce
+      }),
+      refreshToken: this.tokenService.generateRefreshToken({
+        sessionId,
+        nonce: nextNonce
+      })
+    })
   }
 }
 

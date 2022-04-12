@@ -17,20 +17,16 @@ model User {
   email        String    @unique
   name         String
   passwordHash String
-  sessions     Token[]
+  sessions     Session[]
 }
 
-model Token {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  token           String
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          String    @db.Uuid
-  expires         DateTime
-  createdAt       DateTime  @default(now())
-  revokedAt       DateTime?
-  replacedBy      String?   @db.Uuid
-  replacedByToken Token?    @relation("TokenToToken", fields: [replacedBy], references: [id], onDelete: Cascade)
-  tokens          Token[]   @relation("TokenToToken")
+model Session {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @db.Uuid
+  nonce     String
+  expires   DateTime
 
-  @@unique([userId, token])
+  @@unique([userId, nonce])
 }
