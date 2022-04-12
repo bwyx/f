@@ -56,11 +56,20 @@ class AuthController {
     }
 
     const nonce = this.tokenService.generateNonce()
-    await this.sessionService.createSession({ userId: user.id, nonce })
+    const createdSession = await this.sessionService.createSession({
+      userId: user.id,
+      nonce
+    })
 
     rep.send({
-      accessToken: this.tokenService.generateAccessToken(user.id, nonce),
-      refreshToken: this.tokenService.generateRefreshToken(user.id, nonce)
+      accessToken: this.tokenService.generateAccessToken({
+        userId: user.id,
+        nonce
+      }),
+      refreshToken: this.tokenService.generateRefreshToken({
+        sessionId: createdSession.id,
+        nonce
+      })
     })
   }
 
@@ -75,7 +84,7 @@ class AuthController {
   getSessions: RouteHandler = async (req, rep) => {
     const { sub } = req.user
 
-    rep.send(await this.sessionService.listSessions(sub))
+    rep.send(await this.sessionService.listSessions({ userId: sub }))
   }
 
   refreshTokens: RouteHandler<{
@@ -83,18 +92,24 @@ class AuthController {
   }> = async (req, rep) => {
     const refreshToken = req.headers.authorization.split(' ')[1]
 
-    const { userId, nextNonce, tokenNonce } =
+    const { sessionId, nextNonce, tokenNonce } =
       this.tokenService.verifyRefreshToken(refreshToken)
 
-    await this.sessionService.updateSession({
-      userId,
+    const updatedSession = await this.sessionService.refreshSession({
+      sessionId,
       nonce: tokenNonce,
       nextNonce
     })
 
     rep.send({
-      accessToken: this.tokenService.generateAccessToken(userId, nextNonce),
-      refreshToken: this.tokenService.generateRefreshToken(userId, nextNonce)
+      accessToken: this.tokenService.generateAccessToken({
+        userId: updatedSession.userId,
+        nonce: nextNonce
+      }),
+      refreshToken: this.tokenService.generateRefreshToken({
+        sessionId,
+        nonce: nextNonce
+      })
     })
   }
 }
