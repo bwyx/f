@@ -1,7 +1,6 @@
 import fp from 'fastify-plugin'
 import crypto from 'crypto'
 import cryptoRandomString from 'crypto-random-string'
-import httpErrors from 'http-errors'
 
 import type { JWT } from 'fastify-jwt'
 
@@ -97,7 +96,13 @@ export class TokenService {
     return Buffer.from(base64Payload, 'base64').toString('utf-8')
   }
 
-  generateAccessToken = (userId: string, nonce: string) => {
+  generateAccessToken = ({
+    userId,
+    nonce
+  }: {
+    userId: string
+    nonce: string
+  }) => {
     const accessToken = this.jwt.sign(
       { sub: userId, jti: nonce },
       // A numeric value is interpreted as a seconds count.
@@ -110,9 +115,15 @@ export class TokenService {
     return accessToken
   }
 
-  generateRefreshToken = (userId: string, nonce: string) => {
+  generateRefreshToken = ({
+    sessionId,
+    nonce
+  }: {
+    sessionId: string
+    nonce: string
+  }) => {
     const nextNonce = this.generateNonce()
-    const payload = `${userId}.${nextNonce}`
+    const payload = `${sessionId}.${nextNonce}`
 
     return this.createOpaqueToken(payload, nonce)
   }
@@ -122,11 +133,11 @@ export class TokenService {
       const tokenNonce = refreshToken.split('.')[1]
       const payload = this.parseOpaqueToken(refreshToken)
 
-      const [userId, nextNonce] = payload.split('.')
+      const [sessionId, nextNonce] = payload.split('.')
 
-      return { userId, nextNonce, tokenNonce }
+      return { sessionId, nextNonce, tokenNonce }
     } catch (e) {
-      throw new httpErrors.Unauthorized('Invalid refresh token')
+      throw new Error('Invalid refresh token')
     }
   }
 }
