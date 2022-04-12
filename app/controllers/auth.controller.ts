@@ -64,14 +64,13 @@ class AuthController {
     })
   }
 
-  // logout: RouteHandler<{
-  //   Headers: FromSchema<typeof authorizationHeaders>
-  // }> = async (req, rep) => {
-  //   const refreshToken = req.headers.authorization.split(' ')[1]
-  //   await this.sessionService.revokeSession(refreshToken)
+  logout: RouteHandler = async (req, rep) => {
+    // TODO: blacklist access token
+    const { sub, jti } = req.user
+    await this.sessionService.deleteSession({ userId: sub, nonce: jti })
 
-  //   rep.code(204)
-  // }
+    rep.code(204)
+  }
 
   getSessions: RouteHandler = async (req, rep) => {
     const { sub } = req.user

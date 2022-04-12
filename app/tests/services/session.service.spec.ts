@@ -52,4 +52,20 @@ describe('[Service: Session]', () => {
       ).to.be.rejectedWith(httpErrors.Unauthorized)
     })
   })
+
+  describe('deleteSession()', () => {
+    it('should call `delete()` once', async function () {
+      this.session.expects('delete').once()
+
+      await expect(sessionService.deleteSession({ userId, nonce })).to.be
+        .fulfilled
+    })
+
+    it('should not throw if no session record found', async function () {
+      this.session.expects('delete').throws(prismaError('P2025'))
+
+      await expect(sessionService.deleteSession({ userId, nonce })).to.be
+        .fulfilled
+    })
+  })
 })

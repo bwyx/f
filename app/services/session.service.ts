@@ -1,6 +1,7 @@
 import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
 
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 import type { Prisma, PrismaClient } from '@prisma/client'
 
 import { env } from '../config/index.js'
@@ -42,6 +43,20 @@ export class SessionService {
     this.session.findMany({
       where: { userId }
     })
+
+  deleteSession = async ({ userId, nonce }: SessionCompoundUnique) => {
+    try {
+      return await this.session.delete({
+        where: { userId_nonce: { userId, nonce } }
+      })
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') return undefined
+      }
+
+      throw e
+    }
+  }
 }
 
 export default fp(async (app) => {
