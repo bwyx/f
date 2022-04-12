@@ -6,7 +6,7 @@ import chaiAsPromised from 'chai-as-promised'
 import type { Session } from '@prisma/client'
 
 import { prismaModel } from '../mocks.js'
-
+import { prismaError } from '../fixtures.js'
 import { SessionService } from '../../services/session.service.js'
 
 chai.use(chaiAsPromised)
@@ -137,6 +137,13 @@ describe('[Service: Session]', () => {
       await expect(
         sessionService.deleteSession({ userId: UUID, nonce: NONCE })
       ).to.eventually.equal(session)
+    })
+
+    it('should not throw an error if no session record is found', async function () {
+      this.session.expects('delete').once().rejects(prismaError('P2025'))
+
+      await expect(sessionService.deleteSession({ userId: UUID, nonce: NONCE }))
+        .to.eventually.be.fulfilled
     })
   })
 })
