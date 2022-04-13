@@ -7,33 +7,29 @@ import blipp from 'fastify-blipp'
 
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 
+import services from './services/index.js'
+import controllers from './controllers/index.js'
+
 const dir = dirname(fileURLToPath(import.meta.url))
 
 const build = (opts: FastifyServerOptions = {}) => {
-  const app: FastifyInstance = fastify(opts)
+  const f: FastifyInstance = fastify(opts)
 
-  app.register(blipp)
+  f.register(blipp)
 
-  app.register(autoload, {
+  f.register(autoload, {
     dir: join(dir, 'plugins')
   })
 
-  app.register(autoload, {
-    dir: join(dir, 'services'),
-    ignorePattern: /.*(test|spec).js/
+  f.register(services)
+
+  f.register(controllers)
+
+  f.register(autoload, {
+    dir: join(dir, 'routes')
   })
 
-  app.register(autoload, {
-    dir: join(dir, 'controllers'),
-    ignorePattern: /.*(test|spec).js/
-  })
-
-  app.register(autoload, {
-    dir: join(dir, 'routes'),
-    ignorePattern: /.*(test|spec).js/
-  })
-
-  return app
+  return f
 }
 
 export default build

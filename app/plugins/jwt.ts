@@ -15,11 +15,11 @@ const verifyJwt = (req: FastifyRequest) => req.jwtVerify()
  *
  * @see https://github.com/fastify/fastify-jwt
  */
-export default fp<FastifyJWTOptions>(async (fastify) => {
-  fastify.register(jwt, {
+export default fp<FastifyJWTOptions>(async (f) => {
+  f.register(jwt, {
     secret: env.APP_KEY
   })
-  fastify.decorate('verifyJwt', verifyJwt)
+  f.decorate('verifyJwt', verifyJwt)
 })
 
 declare module 'fastify' {

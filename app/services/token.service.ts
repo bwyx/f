@@ -1,4 +1,3 @@
-import fp from 'fastify-plugin'
 import crypto from 'crypto'
 import cryptoRandomString from 'crypto-random-string'
 
@@ -142,13 +141,4 @@ export class TokenService {
   }
 }
 
-export default fp(async (app) => {
-  app.decorate('tokenService', new TokenService(app.jwt))
-})
-
-declare module 'fastify' {
-  // eslint-disable-next-line no-unused-vars
-  interface FastifyInstance {
-    tokenService: TokenService
-  }
-}
+export default TokenService

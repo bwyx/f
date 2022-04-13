@@ -1,4 +1,3 @@
-import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
 import { hash } from 'bcrypt'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
@@ -62,13 +61,4 @@ export class UserService {
   }
 }
 
-export default fp(async (fastify) => {
-  fastify.decorate('userService', new UserService(fastify.prisma.user))
-})
-
-declare module 'fastify' {
-  // eslint-disable-next-line no-unused-vars
-  interface FastifyInstance {
-    userService: UserService
-  }
-}
+export default UserService

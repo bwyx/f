@@ -6,42 +6,43 @@ import {
   authorizationHeaders
 } from '../../validations/auth.schema.js'
 
-const routes: FastifyPluginAsync = async (app): Promise<void> => {
-  const { authController, verifyJwt } = app
+const routes: FastifyPluginAsync = async (f) => {
+  const { verifyJwt } = f
+  const { auth } = f.controllers
 
-  app.route({
+  f.route({
     method: 'POST',
     url: '/register',
     schema: { body: registerBody },
-    handler: authController.register
+    handler: auth.register
   })
 
-  app.route({
+  f.route({
     method: 'POST',
     url: '/login',
     schema: { body: loginBody },
-    handler: authController.login
+    handler: auth.login
   })
 
-  app.route({
+  f.route({
     method: 'POST',
     url: '/logout',
     preHandler: verifyJwt,
-    handler: authController.logout
+    handler: auth.logout
   })
 
-  app.route({
+  f.route({
     method: 'GET',
     url: '/sessions',
     preHandler: verifyJwt,
-    handler: authController.getSessions
+    handler: auth.getSessions
   })
 
-  app.route({
+  f.route({
     method: 'POST',
     url: '/refresh-tokens',
     schema: { headers: authorizationHeaders },
-    handler: authController.refreshTokens
+    handler: auth.refreshTokens
   })
 }
 

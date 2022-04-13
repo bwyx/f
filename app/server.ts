@@ -4,21 +4,21 @@ import build from './index.js'
 
 import { fastifyConfig, env } from './config/index.js'
 
-const app = build(fastifyConfig)
+const f = build(fastifyConfig)
 
 const start = async () => {
   try {
     if (isDocker()) {
-      await app.listen(env.APP_PORT, '0.0.0.0')
+      await f.listen(env.APP_PORT, '0.0.0.0')
     } else {
-      await app.listen(env.APP_PORT)
+      await f.listen(env.APP_PORT)
     }
   } catch (err) {
-    app.log.fatal(err)
+    f.log.fatal(err)
     process.exit(1)
   }
 
-  app.blipp()
+  f.blipp()
 }
 
 start()

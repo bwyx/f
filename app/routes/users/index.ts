@@ -5,27 +5,27 @@ import {
   deleteUserParams
 } from '../../validations/user.schema.js'
 
-const routes: FastifyPluginAsync = async (app): Promise<void> => {
-  const { userController } = app
+const routes: FastifyPluginAsync = async (f) => {
+  const { user } = f.controllers
 
-  app.route({
+  f.route({
     method: 'GET',
     url: '/',
-    handler: userController.list
+    handler: user.list
   })
 
-  app.route({
+  f.route({
     method: 'POST',
     url: '/',
     schema: { body: createUserBody },
-    handler: userController.create
+    handler: user.create
   })
 
-  app.route({
+  f.route({
     method: 'DELETE',
     url: '/:userId',
     schema: { params: deleteUserParams },
-    handler: userController.delete
+    handler: user.delete
   })
 }
 

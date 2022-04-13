@@ -1,15 +1,13 @@
-import fp from 'fastify-plugin'
-
 import type { FastifyInstance, RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
 import { createUserBody, deleteUserParams } from '../validations/user.schema.js'
 
-class UserController {
+export class UserController {
   private userService
 
-  constructor(app: FastifyInstance) {
-    this.userService = app.userService
+  constructor(_services: FastifyInstance['services']) {
+    this.userService = _services.user
   }
 
   list: RouteHandler = async (req, rep) => {
@@ -33,13 +31,4 @@ class UserController {
   }
 }
 
-export default fp(async (app) =>
-  app.decorate('userController', new UserController(app))
-)
-
-declare module 'fastify' {
-  // eslint-disable-next-line no-shadow, no-unused-vars
-  interface FastifyInstance {
-    userController: UserController
-  }
-}
+export default UserController

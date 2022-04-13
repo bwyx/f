@@ -1,5 +1,3 @@
-import fp from 'fastify-plugin'
-
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 import type { Prisma, PrismaClient } from '@prisma/client'
 
@@ -39,8 +37,8 @@ export class SessionService {
 
     if (session.nonce !== nonce) {
       // a nonce mismatch is a sign of session has been compromised
-      // end this whole session since it's possible that the attacker has the current session,
-      // and this attempt is from the victim that needs to refresh the session
+      // end this whole session since probably the malicious user has the current session,
+      // and this attempt is from the legitimate user instead that needs to refresh the session
       await this.session.delete({ where: { id: sessionId } })
       throw new Error('It seems like you are not logged in')
     }
@@ -76,13 +74,4 @@ export class SessionService {
   }
 }
 
-export default fp(async (app) => {
-  app.decorate('sessionService', new SessionService(app.prisma.session))
-})
-
-declare module 'fastify' {
-  // eslint-disable-next-line no-unused-vars
-  interface FastifyInstance {
-    sessionService: SessionService
-  }
-}
+export default SessionService

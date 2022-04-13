@@ -1,4 +1,3 @@
-import fp from 'fastify-plugin'
 import { compare } from 'bcrypt'
 
 import type { FastifyInstance, RouteHandler } from 'fastify'
@@ -10,17 +9,17 @@ import {
   authorizationHeaders
 } from '../validations/auth.schema.js'
 
-class AuthController {
+export class AuthController {
   private userService
 
   private sessionService
 
   private tokenService
 
-  constructor(app: FastifyInstance) {
-    this.userService = app.userService
-    this.sessionService = app.sessionService
-    this.tokenService = app.tokenService
+  constructor(_services: FastifyInstance['services']) {
+    this.userService = _services.user
+    this.sessionService = _services.session
+    this.tokenService = _services.token
   }
 
   register: RouteHandler<{
@@ -114,13 +113,4 @@ class AuthController {
   }
 }
 
-export default fp(async (app) =>
-  app.decorate('authController', new AuthController(app))
-)
-
-declare module 'fastify' {
-  // eslint-disable-next-line no-shadow, no-unused-vars
-  interface FastifyInstance {
-    authController: AuthController
-  }
-}
+export default AuthController
