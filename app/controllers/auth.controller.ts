@@ -27,7 +27,7 @@ export class AuthController {
   }> = async (req, rep) => {
     const { name, email, password } = req.body
 
-    await this.userService.create({ name, email, password })
+    await this.userService.createUser({ name, email, password })
 
     rep.code(201).send()
   }
@@ -36,9 +36,7 @@ export class AuthController {
     Body: FromSchema<typeof loginBody>
   }> = async (req, rep) => {
     const { email, password } = req.body
-    const user = await this.userService.getUnique({
-      where: { email }
-    })
+    const user = await this.userService.getUserByEmail(email)
 
     if (!user) {
       rep.unauthorized(

@@ -11,13 +11,13 @@ export class UserController {
   }
 
   list: RouteHandler = async (req, rep) => {
-    rep.send(await this.userService.query())
+    rep.send(await this.userService.queryUsers())
   }
 
   create: RouteHandler<{
     Body: FromSchema<typeof createUserBody>
   }> = async (req, rep) => {
-    rep.send(await this.userService.create(req.body))
+    rep.send(await this.userService.createUser(req.body))
   }
 
   delete: RouteHandler<{
@@ -25,7 +25,7 @@ export class UserController {
     Reply: undefined // 204
   }> = async (req, rep) => {
     const { userId } = req.params
-    await this.userService.remove(userId)
+    await this.userService.deleteUserById(userId)
 
     rep.code(204)
   }

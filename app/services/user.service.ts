@@ -2,7 +2,7 @@ import httpErrors from 'http-errors'
 import { hash } from 'bcrypt'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 
-import type { Prisma, PrismaClient, User } from '@prisma/client'
+import type { Prisma, PrismaClient } from '@prisma/client'
 
 interface IUserCreate {
   name: string
@@ -17,13 +17,14 @@ export class UserService {
     this.user = _user
   }
 
-  getUnique = (args: Prisma.UserFindUniqueArgs) => this.user.findUnique(args)
+  getUserByEmail = (
+    email: string,
+    opts: Omit<Prisma.UserFindUniqueArgs, 'where'> = {}
+  ) => this.user.findUnique({ where: { email }, ...opts })
 
-  getFirst = (args: Prisma.UserFindFirstArgs) => this.user.findFirst(args)
+  queryUsers = (args?: Prisma.UserFindManyArgs) => this.user.findMany(args)
 
-  query = (args?: Prisma.UserFindManyArgs) => this.user.findMany(args)
-
-  create = async ({ name, email, password }: IUserCreate) => {
+  createUser = async ({ name, email, password }: IUserCreate) => {
     const passwordHash = await hash(password, 10)
 
     try {
@@ -46,7 +47,7 @@ export class UserService {
     }
   }
 
-  remove = async (id: User['id']) => {
+  deleteUserById = async (id: string) => {
     try {
       return await this.user.delete({ where: { id } })
     } catch (e) {
