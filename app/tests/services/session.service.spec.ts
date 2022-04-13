@@ -2,6 +2,7 @@
 import sinon from 'sinon'
 import chai, { expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
+import httpErrors from 'http-errors'
 
 import type { Session } from '@prisma/client'
 
@@ -50,18 +51,18 @@ describe('[Service: Session]', () => {
     it('should list sessions', async function () {
       const sessions: Session[] = [session, session]
 
-      this.session.expects('findMany').once().returns(sessions)
+      this.session.expects('findMany').once().resolves(sessions)
 
       await expect(
         sessionService.listSessions({ userId: UUID })
-      ).to.eventually.equal(sessions)
+      ).to.be.fulfilled.and.eventually.equal(sessions)
     })
   })
 
   describe('refreshSession()', () => {
     it('should refresh a session', async function () {
-      this.session.expects('findUnique').once().returns(session)
-      this.session.expects('update').once().returns(session)
+      this.session.expects('findUnique').once().resolves(session)
+      this.session.expects('update').once().resolves(session)
 
       await expect(
         sessionService.refreshSession({
@@ -69,11 +70,11 @@ describe('[Service: Session]', () => {
           nonce: NONCE,
           nextNonce: NONCE
         })
-      ).to.eventually.equal(session)
+      ).to.be.fulfilled.and.eventually.equal(session)
     })
 
     it('should not refresh the session if no session record is found', async function () {
-      this.session.expects('findUnique').once().rejects()
+      this.session.expects('findUnique').once().resolves(null)
       this.session.expects('update').never()
 
       await expect(
@@ -82,11 +83,11 @@ describe('[Service: Session]', () => {
           nonce: NONCE,
           nextNonce: NONCE
         })
-      ).to.eventually.be.rejectedWith(Error)
+      ).to.be.rejectedWith(httpErrors.Unauthorized)
     })
 
     it('should not refresh the session if the nonce is not the same as in the database', async function () {
-      this.session.expects('findUnique').once().returns(session)
+      this.session.expects('findUnique').once().resolves(session)
       this.session.expects('update').never()
 
       await expect(
@@ -95,12 +96,12 @@ describe('[Service: Session]', () => {
           nonce: OLD_INVALID_NONCE,
           nextNonce: NONCE
         })
-      ).to.eventually.be.rejectedWith(Error)
+      ).to.be.rejectedWith(httpErrors.Unauthorized)
     })
 
     it('should delete the session if the nonce is not the same as in the database', async function () {
-      this.session.expects('findUnique').once().returns(session)
-      this.session.expects('delete').once().returns(session)
+      this.session.expects('findUnique').once().resolves(session)
+      this.session.expects('delete').once().resolves(session)
 
       await expect(
         sessionService.refreshSession({
@@ -108,7 +109,7 @@ describe('[Service: Session]', () => {
           nonce: OLD_INVALID_NONCE,
           nextNonce: NONCE
         })
-      ).to.eventually.be.rejectedWith(Error)
+      ).to.be.rejectedWith(httpErrors.Unauthorized)
     })
 
     it('should not refresh the session if it has expired', async function () {
@@ -117,7 +118,7 @@ describe('[Service: Session]', () => {
         expires: new Date(Date.now() - ONE_SECOND)
       }
 
-      this.session.expects('findUnique').once().returns(expiredSession)
+      this.session.expects('findUnique').once().resolves(expiredSession)
       this.session.expects('update').never()
 
       await expect(
@@ -126,13 +127,13 @@ describe('[Service: Session]', () => {
           nonce: NONCE,
           nextNonce: NONCE
         })
-      ).to.eventually.be.rejectedWith(Error)
+      ).to.be.rejectedWith(httpErrors.Unauthorized)
     })
   })
 
   describe('deleteSession()', () => {
     it('should delete a session', async function () {
-      this.session.expects('delete').once().returns(session)
+      this.session.expects('delete').once().resolves(session)
 
       await expect(
         sessionService.deleteSession({ userId: UUID, nonce: NONCE })
@@ -142,8 +143,9 @@ describe('[Service: Session]', () => {
     it('should not throw an error if no session record is found', async function () {
       this.session.expects('delete').once().rejects(prismaError('P2025'))
 
-      await expect(sessionService.deleteSession({ userId: UUID, nonce: NONCE }))
-        .to.eventually.be.fulfilled
+      await expect(
+        sessionService.deleteSession({ userId: UUID, nonce: NONCE })
+      ).to.be.fulfilled.and.eventually.equal(null)
     })
   })
 })

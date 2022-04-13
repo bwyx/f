@@ -1,3 +1,5 @@
+import httpErrors from 'http-errors'
+
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
 import type { Prisma, PrismaClient } from '@prisma/client'
 
@@ -30,22 +32,28 @@ export class SessionService {
     const newExpires = new Date(Date.now() + env.TOKEN_REFRESH_EXPIRATION)
 
     const session = await this.session.findUnique({
-      where: { id: sessionId },
-      rejectOnNotFound: () =>
-        new Error('It seems like you have been logged out. Please login again')
+      where: { id: sessionId }
     })
+
+    if (!session) {
+      throw new httpErrors.Unauthorized(
+        'It seems like you have been logged out. Please login again'
+      )
+    }
 
     if (session.nonce !== nonce) {
       // a nonce mismatch is a sign of session has been compromised
       // end this whole session since probably the malicious user has the current session,
       // and this attempt is from the legitimate user instead that needs to refresh the session
       await this.session.delete({ where: { id: sessionId } })
-      throw new Error('It seems like you are not logged in')
+      throw new httpErrors.Unauthorized('It seems like you are not logged in')
     }
 
     if (session.expires < now) {
       // TODO: should delete this session(?) or preserve it for session history?
-      throw new Error('Session has expired. Please login again')
+      throw new httpErrors.Unauthorized(
+        'Session has expired. Please login again'
+      )
     }
 
     return this.session.update({
@@ -66,7 +74,7 @@ export class SessionService {
       })
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') return undefined
+        if (e.code === 'P2025') return null
       }
 
       throw e

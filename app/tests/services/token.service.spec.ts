@@ -2,6 +2,7 @@
 import sinon from 'sinon'
 import chai, { expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
+import httpErrors from 'http-errors'
 
 import { jwt } from '../mocks.js'
 import { TokenService } from '../../services/token.service.js'
@@ -73,10 +74,7 @@ describe('[Service: Token]', () => {
     it('should be able to process symbols', () => {
       const symbols = `~!@#$%^&*()_+-={}[]:";<>,.?/'`
 
-      const opaqueToken = tokenService.createOpaqueToken(
-        symbols,
-        'abcdefghijklmnop'
-      )
+      const opaqueToken = tokenService.createOpaqueToken(symbols, NONCE)
       const parsedOpaqueToken = tokenService.parseOpaqueToken(opaqueToken)
 
       expect(parsedOpaqueToken).to.be.equal(symbols)
@@ -121,7 +119,7 @@ describe('[Service: Token]', () => {
       modifiedTokens.forEach((token) => {
         const verify = () => tokenService.verifyRefreshToken(token)
 
-        expect(verify).to.throw(Error, 'Invalid refresh token')
+        expect(verify).to.throw(httpErrors.Unauthorized)
       })
     })
   })

@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import cryptoRandomString from 'crypto-random-string'
+import httpErrors from 'http-errors'
 
 import type { JWT } from 'fastify-jwt'
 
@@ -88,7 +89,7 @@ export class TokenService {
     // verify signature
     const [base64Payload, signature] = signedPayload.split('.')
     if (!this.verifySignature(base64Payload, signature)) {
-      throw new Error("can't verify refresh token signature")
+      throw new httpErrors.Unauthorized('Invalid token signature')
     }
 
     // return parsed utf8 payload
@@ -136,7 +137,7 @@ export class TokenService {
 
       return { sessionId, nextNonce, tokenNonce }
     } catch (e) {
-      throw new Error('Invalid refresh token')
+      throw new httpErrors.Unauthorized('Invalid refresh token')
     }
   }
 }
