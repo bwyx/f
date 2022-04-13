@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import fastify from 'fastify'
 import autoload from 'fastify-autoload'
 import blipp from 'fastify-blipp'
+import helmet from 'fastify-helmet'
 
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 
@@ -14,6 +15,8 @@ const dir = dirname(fileURLToPath(import.meta.url))
 
 const build = (opts: FastifyServerOptions = {}) => {
   const f: FastifyInstance = fastify(opts)
+
+  f.register(helmet)
 
   f.register(blipp)
 
