@@ -3,6 +3,15 @@ import { expect } from 'chai'
 
 import build from '../../index.js'
 
+interface ParsedCookie {
+  name: string
+  value: string
+  path?: string
+  expires?: Date
+  secure?: boolean
+  sameSite?: boolean | string
+}
+
 describe('[Route: Auth]', async () => {
   before(function () {
     this.f = build()
@@ -99,6 +108,53 @@ describe('[Route: Auth]', async () => {
         headers: {
           authorization: `Bearer ${access}`
         }
+      })
+
+      expect(resp.statusCode).to.equal(200)
+    })
+  })
+
+  describe('GET /sessions', () => {
+    const method = 'GET'
+    const url = '/auth/sessions'
+
+    it('should get the sessions of the user', async function () {
+      const loginResponse = await this.f.inject({
+        method: 'POST',
+        url: 'auth/login',
+        payload: login1
+      })
+      const { access } = loginResponse.json()
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: {
+          authorization: `Bearer ${access}`
+        }
+      })
+
+      expect(resp.statusCode).to.equal(200)
+    })
+
+    it('should get the sessions from frontend using auth cookies', async function () {
+      // Login
+      const loginResponse = await this.f.inject({
+        method: 'POST',
+        url: 'auth/login',
+        payload: login1,
+        headers: { 'x-requested-with': 'XMLHttpRequest' }
+      })
+      const cookiesAfterLogin = loginResponse.cookies as ParsedCookie[]
+      const cookieString = cookiesAfterLogin
+        .map((c) => `${c.name}=${c.value}`)
+        .join('; ')
+      // Login End
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: { 'x-requested-with': 'XMLHttpRequest', cookie: cookieString }
       })
 
       expect(resp.statusCode).to.equal(200)
