@@ -16,8 +16,8 @@ interface AuthTokens {
 }
 
 const COOKIE = {
-  HEADER_PAYLOAD: 'user',
-  SIGNATURE: 'sign',
+  PAYLOAD: 'user',
+  HEADER_SIGNATURE: 'sign',
   REFRESH: 'refresh'
 }
 
@@ -26,9 +26,14 @@ const isFromFrontend = (req: FastifyRequest) =>
 
 const splitJwt = (jwtToken: string) => {
   const [headers, payload, signature] = jwtToken.split('.')
-  const headersPayload = `${headers}.${payload}`
+  const headersAndSignature = `${headers}.${signature}`
 
-  return { headersPayload, signature }
+  return { payload, headersAndSignature }
+}
+
+const joinJwt = (payload: string, headersAndSignature: string) => {
+  const [headers, signature] = headersAndSignature.split('.')
+  return `${headers}.${payload}.${signature}`
 }
 
 const getAuthorizationBearer = (req: FastifyRequest) => {
@@ -50,14 +55,14 @@ const getAuthorizationBearer = (req: FastifyRequest) => {
 export const extractToken = (req: FastifyRequest) => {
   if (isFromFrontend(req)) {
     const { cookies } = req
-    const headerPayload = cookies[COOKIE.HEADER_PAYLOAD]
-    const signature = cookies[COOKIE.SIGNATURE]
+    const payload = cookies[COOKIE.PAYLOAD]
+    const headersAndSignature = cookies[COOKIE.HEADER_SIGNATURE]
 
-    if (!headerPayload || !signature) {
+    if (!payload || !headersAndSignature) {
       throw httpErrors(401, 'No Authorization was found in request.cookies')
     }
 
-    return `${headerPayload}.${signature}`
+    return joinJwt(payload, headersAndSignature)
   }
 
   return getAuthorizationBearer(req)
@@ -80,10 +85,10 @@ export function getRefreshToken(this: FastifyRequest) {
 
 export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
   if (isFromFrontend(this.request)) {
-    const { headersPayload, signature } = splitJwt(tokens.access)
+    const { payload, headersAndSignature } = splitJwt(tokens.access)
 
     // HttpOnly disabled, acessible from javascript client
-    this.setCookie(COOKIE.HEADER_PAYLOAD, headersPayload, {
+    this.setCookie(COOKIE.PAYLOAD, payload, {
       path: '/',
       secure: true,
       httpOnly: false,
@@ -92,7 +97,7 @@ export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
     })
 
     // HttpOnly, not accessible from javascript client
-    this.setCookie(COOKIE.SIGNATURE, signature, {
+    this.setCookie(COOKIE.HEADER_SIGNATURE, headersAndSignature, {
       path: '/',
       secure: true,
       httpOnly: true,
@@ -121,7 +126,7 @@ export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
 // eslint-disable-next-line no-unused-vars
 export function destroyFrontendAuthCookies(this: FastifyReply) {
   if (isFromFrontend(this.request)) {
-    this.setCookie(COOKIE.HEADER_PAYLOAD, '', {
+    this.setCookie(COOKIE.PAYLOAD, '', {
       path: '/',
       secure: true,
       httpOnly: false,
@@ -129,7 +134,7 @@ export function destroyFrontendAuthCookies(this: FastifyReply) {
       expires: new Date(0)
     })
 
-    this.setCookie(COOKIE.SIGNATURE, '', {
+    this.setCookie(COOKIE.HEADER_SIGNATURE, '', {
       path: '/',
       secure: true,
       httpOnly: true,
