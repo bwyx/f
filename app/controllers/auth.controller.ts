@@ -75,7 +75,8 @@ export class AuthController {
     const { sub, jti } = req.user
     await this.sessionService.deleteSession({ userId: sub, nonce: jti })
 
-    rep.code(204)
+    rep.destroyFrontendAuthCookies()
+    rep.code(200).send()
   }
 
   getSessions: RouteHandler = async (req, rep) => {

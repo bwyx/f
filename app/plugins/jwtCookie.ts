@@ -101,13 +101,45 @@ export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
   this.send(tokens)
 }
 
+// Remove cookie server side
+// https://tools.ietf.org/search/rfc6265
+// eslint-disable-next-line no-unused-vars
+export function destroyFrontendAuthCookies(this: FastifyReply) {
+  if (isFromFrontend(this.request)) {
+    this.setCookie(COOKIE.HEADER_PAYLOAD, '', {
+      path: '/',
+      secure: true,
+      httpOnly: false,
+      sameSite: 'strict',
+      expires: new Date(0)
+    })
+
+    this.setCookie(COOKIE.SIGNATURE, '', {
+      path: '/',
+      secure: true,
+      httpOnly: true,
+      sameSite: 'strict',
+      expires: new Date(0)
+    })
+
+    this.setCookie(COOKIE.REFRESH, '', {
+      path: '/',
+      secure: true,
+      httpOnly: true,
+      sameSite: 'strict',
+      expires: new Date(0)
+    })
+  }
+}
 export default fp(async (f) => {
   f.decorateReply('sendAuthTokens', sendAuthTokens)
+  f.decorateReply('destroyFrontendAuthCookies', destroyFrontendAuthCookies)
 })
 
 declare module 'fastify' {
   // eslint-disable-next-line no-unused-vars, no-shadow
   interface FastifyReply {
     sendAuthTokens: typeof sendAuthTokens
+    destroyFrontendAuthCookies: typeof destroyFrontendAuthCookies
   }
 }
