@@ -17,7 +17,7 @@ describe('[Route: Auth]', async () => {
   const login2 = { email: 'jane@doe.com', password: '12345678' }
   const register2 = { name: 'Jane Doe', ...login2 }
 
-  describe('/register', () => {
+  describe('POST /register', () => {
     const method = 'POST'
     const url = '/auth/register'
 
@@ -36,13 +36,25 @@ describe('[Route: Auth]', async () => {
     })
   })
 
-  describe('/login', () => {
+  describe('POST /login', () => {
     const method = 'POST'
     const url = '/auth/login'
 
     it('should logged in the user', async function () {
       const resp = await this.f.inject({ method, url, payload: login1 })
 
+      expect(resp.statusCode).to.equal(200)
+    })
+
+    it('should logged in the user from frontend and set auth cookies', async function () {
+      const resp = await this.f.inject({
+        method,
+        url,
+        payload: login1,
+        headers: { 'x-requested-with': 'XMLHttpRequest' }
+      })
+
+      expect(resp.cookies).to.be.an('array').and.have.lengthOf(3)
       expect(resp.statusCode).to.equal(200)
     })
 
@@ -64,6 +76,32 @@ describe('[Route: Auth]', async () => {
       const resp = await this.f.inject({ method, url, payload })
 
       expect(resp.statusCode).to.equal(401)
+    })
+  })
+
+  describe('POST /logout', () => {
+    const method = 'POST'
+    const url = '/auth/logout'
+
+    it('should logged out the user', async function () {
+      // Login
+      const loginResponse = await this.f.inject({
+        method,
+        url: '/auth/login',
+        payload: login1
+      })
+      const { access } = loginResponse.json()
+      // Login End
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: {
+          authorization: `Bearer ${access}`
+        }
+      })
+
+      expect(resp.statusCode).to.equal(200)
     })
   })
 })
