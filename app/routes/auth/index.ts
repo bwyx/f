@@ -23,14 +23,14 @@ const routes: FastifyPluginAsync = async (f) => {
   f.route({
     method: 'POST',
     url: '/logout',
-    preHandler: verifyJwt,
+    onRequest: verifyJwt,
     handler: auth.logout
   })
 
   f.route({
     method: 'GET',
     url: '/sessions',
-    preHandler: verifyJwt,
+    onRequest: verifyJwt,
     handler: auth.getSessions
   })
 
