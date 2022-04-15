@@ -1,4 +1,5 @@
 import fp from 'fastify-plugin'
+import httpErrors from 'http-errors'
 
 import type { FastifyRequest, FastifyReply } from 'fastify'
 
@@ -30,7 +31,39 @@ const splitJwt = (jwtToken: string) => {
   return { headersPayload, signature }
 }
 
-function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
+const getAuthorizationBearer = (req: FastifyRequest) => {
+  const { authorization } = req.headers
+  if (!authorization) {
+    throw httpErrors(401, 'No Authorization was found in request.headers')
+  }
+
+  const parts = authorization.split(' ')
+  const [scheme, token] = parts
+
+  if (parts.length !== 2 || !/^Bearer$/i.test(scheme)) {
+    throw httpErrors(401, 'Format is Authorization: Bearer [token]')
+  }
+
+  return token
+}
+
+export const extractToken = (req: FastifyRequest) => {
+  if (isFromFrontend(req)) {
+    const { cookies } = req
+    const headerPayload = cookies[COOKIE.HEADER_PAYLOAD]
+    const signature = cookies[COOKIE.SIGNATURE]
+
+    if (!headerPayload || !signature) {
+      throw httpErrors(401, 'No Authorization was found in request.cookies')
+    }
+
+    return `${headerPayload}.${signature}`
+  }
+
+  return getAuthorizationBearer(req)
+}
+
+export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
   if (isFromFrontend(this.request)) {
     const { headersPayload, signature } = splitJwt(tokens.access)
 
