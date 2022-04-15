@@ -112,6 +112,36 @@ describe('[Route: Auth]', async () => {
 
       expect(resp.statusCode).to.equal(200)
     })
+
+    it('should logged out the user from frontend and remove auth cookies', async function () {
+      // Login
+      const loginResponse = await this.f.inject({
+        method,
+        url: '/auth/login',
+        payload: login1,
+        headers: { 'x-requested-with': 'XMLHttpRequest' }
+      })
+      const cookiesAfterLogin = loginResponse.cookies as ParsedCookie[]
+      const cookieString = cookiesAfterLogin
+        .map((c) => `${c.name}=${c.value}`)
+        .join('; ')
+      // Login End
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: { 'x-requested-with': 'XMLHttpRequest', cookie: cookieString }
+      })
+
+      const cookiesAfterLogout = resp.cookies as ParsedCookie[]
+      cookiesAfterLogout.forEach((cookie) => {
+        const expires = cookie.expires?.getTime()
+        expect(cookie.value).to.equal('')
+        expect(expires).to.be.lessThanOrEqual(Date.now())
+      })
+
+      expect(resp.statusCode).to.equal(200)
+    })
   })
 
   describe('GET /sessions', () => {
