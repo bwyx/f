@@ -12,6 +12,9 @@ interface ParsedCookie {
   sameSite?: boolean | string
 }
 
+const toCookieString = (cookie: ParsedCookie[]): string =>
+  cookie.map((c) => `${c.name}=${c.value}`).join('; ')
+
 describe('[Route: Auth]', async () => {
   before(function () {
     this.f = build()
@@ -122,9 +125,7 @@ describe('[Route: Auth]', async () => {
         headers: { 'x-requested-with': 'XMLHttpRequest' }
       })
       const cookiesAfterLogin = loginResponse.cookies as ParsedCookie[]
-      const cookieString = cookiesAfterLogin
-        .map((c) => `${c.name}=${c.value}`)
-        .join('; ')
+      const cookieString = toCookieString(cookiesAfterLogin)
       // Login End
 
       const resp = await this.f.inject({
@@ -176,9 +177,7 @@ describe('[Route: Auth]', async () => {
         headers: { 'x-requested-with': 'XMLHttpRequest' }
       })
       const cookiesAfterLogin = loginResponse.cookies as ParsedCookie[]
-      const cookieString = cookiesAfterLogin
-        .map((c) => `${c.name}=${c.value}`)
-        .join('; ')
+      const cookieString = toCookieString(cookiesAfterLogin)
       // Login End
 
       const resp = await this.f.inject({
@@ -223,9 +222,7 @@ describe('[Route: Auth]', async () => {
         headers: { 'x-requested-with': 'XMLHttpRequest' }
       })
       const cookiesAfterLogin = loginResponse.cookies as ParsedCookie[]
-      const cookieString = cookiesAfterLogin
-        .map((c) => `${c.name}=${c.value}`)
-        .join('; ')
+      const cookieString = toCookieString(cookiesAfterLogin)
       // Login End
 
       const resp = await this.f.inject({
