@@ -58,12 +58,12 @@ export class AuthController {
       nonce
     })
 
-    rep.send({
-      accessToken: this.tokenService.generateAccessToken({
+    rep.sendAuthTokens({
+      access: this.tokenService.generateAccessToken({
         userId: user.id,
         nonce
       }),
-      refreshToken: this.tokenService.generateRefreshToken({
+      refresh: this.tokenService.generateRefreshToken({
         sessionId: createdSession.id,
         nonce
       })
@@ -98,12 +98,12 @@ export class AuthController {
       nextNonce
     })
 
-    rep.send({
-      accessToken: this.tokenService.generateAccessToken({
+    rep.sendAuthTokens({
+      access: this.tokenService.generateAccessToken({
         userId: updatedSession.userId,
         nonce: nextNonce
       }),
-      refreshToken: this.tokenService.generateRefreshToken({
+      refresh: this.tokenService.generateRefreshToken({
         sessionId,
         nonce: nextNonce
       })
