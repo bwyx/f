@@ -190,4 +190,52 @@ describe('[Route: Auth]', async () => {
       expect(resp.statusCode).to.equal(200)
     })
   })
+
+  describe('POST /refresh-tokens', () => {
+    const method = 'POST'
+    const url = '/auth/refresh-tokens'
+
+    it('should refresh the auth tokens', async function () {
+      const loginResponse = await this.f.inject({
+        method: 'POST',
+        url: 'auth/login',
+        payload: login1
+      })
+      const { refresh } = loginResponse.json()
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: {
+          authorization: `Bearer ${refresh}`
+        }
+      })
+
+      expect(resp.statusCode).to.equal(200)
+    })
+
+    it('should refresh the auth cookies if requested from frontend', async function () {
+      // Login
+      const loginResponse = await this.f.inject({
+        method: 'POST',
+        url: 'auth/login',
+        payload: login1,
+        headers: { 'x-requested-with': 'XMLHttpRequest' }
+      })
+      const cookiesAfterLogin = loginResponse.cookies as ParsedCookie[]
+      const cookieString = cookiesAfterLogin
+        .map((c) => `${c.name}=${c.value}`)
+        .join('; ')
+      // Login End
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: { 'x-requested-with': 'XMLHttpRequest', cookie: cookieString }
+      })
+
+      expect(resp.cookies).to.be.an('array').and.have.lengthOf(3)
+      expect(resp.statusCode).to.equal(200)
+    })
+  })
 })
