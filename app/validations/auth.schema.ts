@@ -16,11 +16,3 @@ export const loginBody = {
     password: { type: 'string' }
   }
 } as const
-
-export const authorizationHeaders = {
-  type: 'object',
-  required: ['authorization'],
-  properties: {
-    authorization: { type: 'string' }
-  }
-} as const

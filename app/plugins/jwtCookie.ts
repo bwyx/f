@@ -63,6 +63,21 @@ export const extractToken = (req: FastifyRequest) => {
   return getAuthorizationBearer(req)
 }
 
+// eslint-disable-next-line no-unused-vars
+export function getRefreshToken(this: FastifyRequest) {
+  if (isFromFrontend(this)) {
+    const refreshToken = this.cookies[COOKIE.REFRESH]
+
+    if (!refreshToken) {
+      throw httpErrors(401, 'No Authorization was found in request.cookies')
+    }
+
+    return refreshToken
+  }
+
+  return getAuthorizationBearer(this)
+}
+
 export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
   if (isFromFrontend(this.request)) {
     const { headersPayload, signature } = splitJwt(tokens.access)
@@ -131,12 +146,19 @@ export function destroyFrontendAuthCookies(this: FastifyReply) {
     })
   }
 }
+
 export default fp(async (f) => {
+  f.decorateRequest('getRefreshToken', getRefreshToken)
   f.decorateReply('sendAuthTokens', sendAuthTokens)
   f.decorateReply('destroyFrontendAuthCookies', destroyFrontendAuthCookies)
 })
 
 declare module 'fastify' {
+  // eslint-disable-next-line no-unused-vars, no-shadow
+  interface FastifyRequest {
+    getRefreshToken: typeof getRefreshToken
+  }
+
   // eslint-disable-next-line no-unused-vars, no-shadow
   interface FastifyReply {
     sendAuthTokens: typeof sendAuthTokens

@@ -3,11 +3,7 @@ import { compare } from 'bcrypt'
 import type { FastifyInstance, RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
-import {
-  registerBody,
-  loginBody,
-  authorizationHeaders
-} from '../validations/auth.schema.js'
+import { registerBody, loginBody } from '../validations/auth.schema.js'
 
 export class AuthController {
   private userService
@@ -85,10 +81,8 @@ export class AuthController {
     rep.send(await this.sessionService.listSessions({ userId: sub }))
   }
 
-  refreshTokens: RouteHandler<{
-    Headers: FromSchema<typeof authorizationHeaders>
-  }> = async (req, rep) => {
-    const refreshToken = req.headers.authorization.split(' ')[1]
+  refreshTokens: RouteHandler = async (req, rep) => {
+    const refreshToken = req.getRefreshToken()
 
     const { sessionId, nextNonce, tokenNonce } =
       this.tokenService.verifyRefreshToken(refreshToken)
