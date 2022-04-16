@@ -23,9 +23,9 @@ interface JWTCookieOptions {
 }
 
 const COOKIE = {
-  PAYLOAD: 'user',
-  HEADER_SIGNATURE: 'sign',
-  REFRESH: 'refresh'
+  PAYLOAD: `${env.APP_NAME}_user`,
+  HEADER_SIGNATURE: `${env.APP_NAME}_token`,
+  REFRESH: `${env.APP_NAME}_session`
 }
 
 const cookieOptions = ({
