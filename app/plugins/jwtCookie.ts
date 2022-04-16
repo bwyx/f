@@ -2,6 +2,7 @@ import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
 
 import type { FastifyRequest, FastifyReply } from 'fastify'
+import type { CookieSerializeOptions } from 'fastify-cookie'
 
 import { env } from '../config/index.js'
 
@@ -15,10 +16,36 @@ interface AuthTokens {
   refresh: string
 }
 
+interface JWTCookieOptions {
+  path?: string
+  accessibleFromJavascript?: boolean
+  lifespan: 'access' | 'refresh' | 'destroy'
+}
+
 const COOKIE = {
   PAYLOAD: 'user',
   HEADER_SIGNATURE: 'sign',
   REFRESH: 'refresh'
+}
+
+const cookieOptions = ({
+  path = '/',
+  accessibleFromJavascript = false,
+  lifespan
+}: JWTCookieOptions): CookieSerializeOptions => {
+  const age =
+    lifespan === 'access'
+      ? env.TOKEN_ACCESS_EXPIRATION
+      : env.TOKEN_REFRESH_EXPIRATION
+
+  return {
+    path,
+    secure: true,
+    httpOnly: !accessibleFromJavascript,
+    sameSite: 'lax',
+    maxAge: lifespan === 'destroy' ? 0 : age,
+    expires: lifespan === 'destroy' ? new Date(0) : undefined
+  }
 }
 
 const isFromFrontend = (req: FastifyRequest) =>
@@ -87,32 +114,26 @@ export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
   if (isFromFrontend(this.request)) {
     const { payload, headersAndSignature } = splitJwt(tokens.access)
 
-    // HttpOnly disabled, acessible from javascript client
-    this.setCookie(COOKIE.PAYLOAD, payload, {
-      path: '/',
-      secure: true,
-      httpOnly: false,
-      sameSite: 'strict',
-      maxAge: env.TOKEN_REFRESH_EXPIRATION // long expiration
-    })
+    this.setCookie(
+      COOKIE.PAYLOAD,
+      payload,
+      cookieOptions({
+        accessibleFromJavascript: true,
+        lifespan: 'refresh'
+      })
+    )
 
-    // HttpOnly, not accessible from javascript client
-    this.setCookie(COOKIE.HEADER_SIGNATURE, headersAndSignature, {
-      path: '/',
-      secure: true,
-      httpOnly: true,
-      sameSite: 'strict',
-      maxAge: env.TOKEN_ACCESS_EXPIRATION // short expiration
-    })
+    this.setCookie(
+      COOKIE.HEADER_SIGNATURE,
+      headersAndSignature,
+      cookieOptions({ lifespan: 'access' })
+    )
 
-    // HttpOnly, not accessible from javascript client
-    this.setCookie(COOKIE.REFRESH, tokens.refresh, {
-      path: '/',
-      secure: true,
-      httpOnly: true,
-      sameSite: 'strict',
-      maxAge: env.TOKEN_REFRESH_EXPIRATION // long expiration
-    })
+    this.setCookie(
+      COOKIE.REFRESH,
+      tokens.refresh,
+      cookieOptions({ lifespan: 'refresh' })
+    )
 
     this.send()
     return
@@ -126,29 +147,28 @@ export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
 // eslint-disable-next-line no-unused-vars
 export function destroyFrontendAuthCookies(this: FastifyReply) {
   if (isFromFrontend(this.request)) {
-    this.setCookie(COOKIE.PAYLOAD, '', {
-      path: '/',
-      secure: true,
-      httpOnly: false,
-      sameSite: 'strict',
-      expires: new Date(0)
-    })
+    const EMPTY = ''
 
-    this.setCookie(COOKIE.HEADER_SIGNATURE, '', {
-      path: '/',
-      secure: true,
-      httpOnly: true,
-      sameSite: 'strict',
-      expires: new Date(0)
-    })
+    this.setCookie(
+      COOKIE.PAYLOAD,
+      EMPTY,
+      cookieOptions({
+        accessibleFromJavascript: true,
+        lifespan: 'destroy'
+      })
+    )
 
-    this.setCookie(COOKIE.REFRESH, '', {
-      path: '/',
-      secure: true,
-      httpOnly: true,
-      sameSite: 'strict',
-      expires: new Date(0)
-    })
+    this.setCookie(
+      COOKIE.HEADER_SIGNATURE,
+      EMPTY,
+      cookieOptions({ lifespan: 'destroy' })
+    )
+
+    this.setCookie(
+      COOKIE.REFRESH,
+      EMPTY,
+      cookieOptions({ lifespan: 'destroy' })
+    )
   }
 }
 
