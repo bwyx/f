@@ -41,8 +41,9 @@ const cookieOptions = ({
   return {
     path,
     secure: true,
-    httpOnly: !accessibleFromJavascript,
     sameSite: 'lax',
+    domain: env.FRONTEND_DOMAIN ? `.${env.FRONTEND_DOMAIN}` : undefined,
+    httpOnly: !accessibleFromJavascript,
     maxAge: lifespan === 'destroy' ? 0 : age,
     expires: lifespan === 'destroy' ? new Date(0) : undefined
   }

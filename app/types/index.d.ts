@@ -4,6 +4,7 @@ interface BaseEnv {
   APP_ENV: string
   APP_PORT: number
   APP_DEBUG: boolean
+  FRONTEND_DOMAIN: string
   TRUST_PROXY: boolean
 }
 
