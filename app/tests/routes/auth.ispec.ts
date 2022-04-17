@@ -3,6 +3,18 @@ import { expect } from 'chai'
 
 import build from '../../index.js'
 
+interface ParsedCookie {
+  name: string
+  value: string
+  path?: string
+  expires?: Date
+  secure?: boolean
+  sameSite?: boolean | string
+}
+
+const toCookieString = (cookie: ParsedCookie[]): string =>
+  cookie.map((c) => `${c.name}=${c.value}`).join('; ')
+
 describe('[Route: Auth]', async () => {
   before(function () {
     this.f = build()
@@ -17,7 +29,7 @@ describe('[Route: Auth]', async () => {
   const login2 = { email: 'jane@doe.com', password: '12345678' }
   const register2 = { name: 'Jane Doe', ...login2 }
 
-  describe('/register', () => {
+  describe('POST /register', () => {
     const method = 'POST'
     const url = '/auth/register'
 
@@ -36,13 +48,25 @@ describe('[Route: Auth]', async () => {
     })
   })
 
-  describe('/login', () => {
+  describe('POST /login', () => {
     const method = 'POST'
     const url = '/auth/login'
 
     it('should logged in the user', async function () {
       const resp = await this.f.inject({ method, url, payload: login1 })
 
+      expect(resp.statusCode).to.equal(200)
+    })
+
+    it('should logged in the user from frontend and set auth cookies', async function () {
+      const resp = await this.f.inject({
+        method,
+        url,
+        payload: login1,
+        headers: { 'x-requested-with': 'XMLHttpRequest' }
+      })
+
+      expect(resp.cookies).to.be.an('array').and.have.lengthOf(3)
       expect(resp.statusCode).to.equal(200)
     })
 
@@ -64,6 +88,151 @@ describe('[Route: Auth]', async () => {
       const resp = await this.f.inject({ method, url, payload })
 
       expect(resp.statusCode).to.equal(401)
+    })
+  })
+
+  describe('POST /logout', () => {
+    const method = 'POST'
+    const url = '/auth/logout'
+
+    it('should logged out the user', async function () {
+      // Login
+      const loginResponse = await this.f.inject({
+        method,
+        url: '/auth/login',
+        payload: login1
+      })
+      const { access } = loginResponse.json()
+      // Login End
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: {
+          authorization: `Bearer ${access}`
+        }
+      })
+
+      expect(resp.statusCode).to.equal(200)
+    })
+
+    it('should logged out the user from frontend and remove auth cookies', async function () {
+      // Login
+      const loginResponse = await this.f.inject({
+        method,
+        url: '/auth/login',
+        payload: login1,
+        headers: { 'x-requested-with': 'XMLHttpRequest' }
+      })
+      const cookiesAfterLogin = loginResponse.cookies as ParsedCookie[]
+      const cookieString = toCookieString(cookiesAfterLogin)
+      // Login End
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: { 'x-requested-with': 'XMLHttpRequest', cookie: cookieString }
+      })
+
+      const cookiesAfterLogout = resp.cookies as ParsedCookie[]
+      cookiesAfterLogout.forEach((cookie) => {
+        const expires = cookie.expires?.getTime()
+        expect(cookie.value).to.equal('')
+        expect(expires).to.be.lessThanOrEqual(Date.now())
+      })
+
+      expect(resp.statusCode).to.equal(200)
+    })
+  })
+
+  describe('GET /sessions', () => {
+    const method = 'GET'
+    const url = '/auth/sessions'
+
+    it('should get the sessions of the user', async function () {
+      const loginResponse = await this.f.inject({
+        method: 'POST',
+        url: 'auth/login',
+        payload: login1
+      })
+      const { access } = loginResponse.json()
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: {
+          authorization: `Bearer ${access}`
+        }
+      })
+
+      expect(resp.statusCode).to.equal(200)
+    })
+
+    it('should get the sessions from frontend using auth cookies', async function () {
+      // Login
+      const loginResponse = await this.f.inject({
+        method: 'POST',
+        url: 'auth/login',
+        payload: login1,
+        headers: { 'x-requested-with': 'XMLHttpRequest' }
+      })
+      const cookiesAfterLogin = loginResponse.cookies as ParsedCookie[]
+      const cookieString = toCookieString(cookiesAfterLogin)
+      // Login End
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: { 'x-requested-with': 'XMLHttpRequest', cookie: cookieString }
+      })
+
+      expect(resp.statusCode).to.equal(200)
+    })
+  })
+
+  describe('POST /refresh-tokens', () => {
+    const method = 'POST'
+    const url = '/auth/refresh-tokens'
+
+    it('should refresh the auth tokens', async function () {
+      const loginResponse = await this.f.inject({
+        method: 'POST',
+        url: 'auth/login',
+        payload: login1
+      })
+      const { refresh } = loginResponse.json()
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: {
+          authorization: `Bearer ${refresh}`
+        }
+      })
+
+      expect(resp.statusCode).to.equal(200)
+    })
+
+    it('should refresh the auth cookies if requested from frontend', async function () {
+      // Login
+      const loginResponse = await this.f.inject({
+        method: 'POST',
+        url: 'auth/login',
+        payload: login1,
+        headers: { 'x-requested-with': 'XMLHttpRequest' }
+      })
+      const cookiesAfterLogin = loginResponse.cookies as ParsedCookie[]
+      const cookieString = toCookieString(cookiesAfterLogin)
+      // Login End
+
+      const resp = await this.f.inject({
+        method,
+        url,
+        headers: { 'x-requested-with': 'XMLHttpRequest', cookie: cookieString }
+      })
+
+      expect(resp.cookies).to.be.an('array').and.have.lengthOf(3)
+      expect(resp.statusCode).to.equal(200)
     })
   })
 })

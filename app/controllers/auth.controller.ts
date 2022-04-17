@@ -3,11 +3,7 @@ import { compare } from 'bcrypt'
 import type { FastifyInstance, RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
-import {
-  registerBody,
-  loginBody,
-  authorizationHeaders
-} from '../validations/auth.schema.js'
+import { registerBody, loginBody } from '../validations/auth.schema.js'
 
 export class AuthController {
   private userService
@@ -58,12 +54,12 @@ export class AuthController {
       nonce
     })
 
-    rep.send({
-      accessToken: this.tokenService.generateAccessToken({
+    rep.sendAuthTokens({
+      access: this.tokenService.generateAccessToken({
         userId: user.id,
         nonce
       }),
-      refreshToken: this.tokenService.generateRefreshToken({
+      refresh: this.tokenService.generateRefreshToken({
         sessionId: createdSession.id,
         nonce
       })
@@ -75,7 +71,8 @@ export class AuthController {
     const { sub, jti } = req.user
     await this.sessionService.deleteSession({ userId: sub, nonce: jti })
 
-    rep.code(204)
+    rep.destroyFrontendAuthCookies()
+    rep.code(200).send()
   }
 
   getSessions: RouteHandler = async (req, rep) => {
@@ -84,10 +81,8 @@ export class AuthController {
     rep.send(await this.sessionService.listSessions({ userId: sub }))
   }
 
-  refreshTokens: RouteHandler<{
-    Headers: FromSchema<typeof authorizationHeaders>
-  }> = async (req, rep) => {
-    const refreshToken = req.headers.authorization.split(' ')[1]
+  refreshTokens: RouteHandler = async (req, rep) => {
+    const refreshToken = req.getRefreshToken()
 
     const { sessionId, nextNonce, tokenNonce } =
       this.tokenService.verifyRefreshToken(refreshToken)
@@ -98,12 +93,12 @@ export class AuthController {
       nextNonce
     })
 
-    rep.send({
-      accessToken: this.tokenService.generateAccessToken({
+    rep.sendAuthTokens({
+      access: this.tokenService.generateAccessToken({
         userId: updatedSession.userId,
         nonce: nextNonce
       }),
-      refreshToken: this.tokenService.generateRefreshToken({
+      refresh: this.tokenService.generateRefreshToken({
         sessionId,
         nonce: nextNonce
       })

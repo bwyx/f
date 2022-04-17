@@ -3,6 +3,7 @@ import jwt, { FastifyJWTOptions } from 'fastify-jwt'
 
 import type { FastifyRequest } from 'fastify'
 
+import { extractToken } from './jwtCookie.js'
 import { env } from '../config/index.js'
 
 const verifyJwt = (req: FastifyRequest) => req.jwtVerify()
@@ -17,7 +18,8 @@ const verifyJwt = (req: FastifyRequest) => req.jwtVerify()
  */
 export default fp<FastifyJWTOptions>(async (f) => {
   f.register(jwt, {
-    secret: env.APP_KEY
+    secret: env.APP_KEY,
+    verify: { extractToken }
   })
   f.decorate('verifyJwt', verifyJwt)
 })
