@@ -23,7 +23,6 @@ const routes: FastifyPluginAsync = async (f) => {
   f.route({
     method: 'POST',
     url: '/logout',
-    onRequest: verifyJwt,
     handler: auth.logout
   })
 

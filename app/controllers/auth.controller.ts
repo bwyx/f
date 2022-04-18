@@ -67,9 +67,15 @@ export class AuthController {
   }
 
   logout: RouteHandler = async (req, rep) => {
-    // TODO: blacklist access token
-    const { sub, jti } = req.user
-    await this.sessionService.deleteSession({ userId: sub, nonce: jti })
+    try {
+      // TODO: blacklist access token jti (tokenNonce)
+      const refreshToken = req.getRefreshToken()
+      const { sessionId } = this.tokenService.verifyRefreshToken(refreshToken)
+
+      await this.sessionService.deleteSessionById(sessionId)
+    } catch (e) {
+      // do nothing
+    }
 
     rep.destroyFrontendAuthCookies()
     rep.code(200).send()

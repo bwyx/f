@@ -67,10 +67,10 @@ export class SessionService {
       where: { userId }
     })
 
-  deleteSession = async ({ userId, nonce }: SessionCompoundUnique) => {
+  deleteSessionById = async (sessionId: string) => {
     try {
       return await this.session.delete({
-        where: { userId_nonce: { userId, nonce } }
+        where: { id: sessionId }
       })
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError) {
