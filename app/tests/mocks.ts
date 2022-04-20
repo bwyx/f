@@ -1,4 +1,6 @@
 import type { JWT } from 'fastify-jwt'
+import type { Transporter } from 'nodemailer'
+import type SMTPTransport from 'nodemailer/lib/smtp-transport.js'
 
 export const prismaModel = {
   findUnique: () => <any>{},
@@ -25,4 +27,10 @@ export const jwt: JWT = {
     sign: {},
     verify: {}
   }
+}
+
+export const mailTransport: Partial<
+  Transporter<SMTPTransport.SentMessageInfo>
+> = {
+  sendMail: () => <any>{}
 }

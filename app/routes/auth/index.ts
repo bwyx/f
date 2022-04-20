@@ -38,6 +38,20 @@ const routes: FastifyPluginAsync = async (f) => {
     url: '/refresh-tokens',
     handler: auth.refreshTokens
   })
+
+  f.route({
+    method: 'POST',
+    url: '/send-verification-email',
+    onRequest: verifyJwt,
+    handler: auth.sendVerificationEmail
+  })
+
+  f.route({
+    method: 'POST',
+    url: '/verify-email',
+    onRequest: verifyJwt,
+    handler: auth.verifyEmail
+  })
 }
 
 export default routes

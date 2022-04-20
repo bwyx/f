@@ -7,5 +7,6 @@ declare module 'mocha' {
     jwt: SinonMock
     session: SinonMock
     user: SinonMock
+    mail: SinonMock
   }
 }

@@ -81,34 +81,50 @@ const getAuthorizationBearer = (req: FastifyRequest) => {
 }
 
 export const extractToken = (req: FastifyRequest) => {
-  if (isFromFrontend(req)) {
-    const { cookies } = req
-    const payload = cookies[COOKIE.PAYLOAD]
-    const headersAndSignature = cookies[COOKIE.HEADER_SIGNATURE]
+  let token
 
-    if (!payload || !headersAndSignature) {
-      throw httpErrors(401, 'No Authorization was found in request.cookies')
+  try {
+    token = getAuthorizationBearer(req)
+  } catch (e) {
+    if (isFromFrontend(req)) {
+      const { cookies } = req
+      const payload = cookies[COOKIE.PAYLOAD]
+      const headersAndSignature = cookies[COOKIE.HEADER_SIGNATURE]
+
+      if (!payload || !headersAndSignature) {
+        throw httpErrors(401, 'No Authorization was found in request.cookies')
+      }
+
+      token = joinJwt(payload, headersAndSignature)
+    } else {
+      throw e
     }
-
-    return joinJwt(payload, headersAndSignature)
   }
 
-  return getAuthorizationBearer(req)
+  return token
 }
 
 // eslint-disable-next-line no-unused-vars
 export function getRefreshToken(this: FastifyRequest) {
-  if (isFromFrontend(this)) {
-    const refreshToken = this.cookies[COOKIE.REFRESH]
+  let token
 
-    if (!refreshToken) {
-      throw httpErrors(401, 'No Authorization was found in request.cookies')
+  try {
+    token = getAuthorizationBearer(this)
+  } catch (e) {
+    if (isFromFrontend(this)) {
+      const cookieRefresh = this.cookies[COOKIE.REFRESH]
+
+      if (!cookieRefresh) {
+        throw httpErrors(401, 'No Authorization was found in request.cookies')
+      }
+
+      token = cookieRefresh
+    } else {
+      throw e
     }
-
-    return refreshToken
   }
 
-  return getAuthorizationBearer(this)
+  return token
 }
 
 export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
