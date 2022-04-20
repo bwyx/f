@@ -22,6 +22,16 @@ export class UserService {
     opts: Omit<Prisma.UserFindUniqueArgs, 'where'> = {}
   ) => this.user.findUnique({ where: { email }, ...opts })
 
+  getUserById = (
+    userId: string,
+    opts: Omit<Prisma.UserFindUniqueArgs, 'where'> = {}
+  ) => this.user.findUnique({ where: { id: userId }, ...opts })
+
+  updateUserById = (
+    userId: string,
+    opts: Omit<Prisma.UserUpdateArgs, 'where'>
+  ) => this.user.update({ where: { id: userId }, ...opts })
+
   queryUsers = (args?: Prisma.UserFindManyArgs) => this.user.findMany(args)
 
   createUser = async ({ name, email, password }: IUserCreate) => {

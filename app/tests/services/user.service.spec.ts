@@ -48,6 +48,51 @@ describe('[Service: User]', () => {
     })
   })
 
+  describe('getUserById()', () => {
+    const userId = '77976d43-c76e-4b0c-943c-342b0f7d6cc4'
+
+    it('should get a user by its id', async function () {
+      this.user.expects('findUnique').once().resolves()
+
+      await expect(userService.getUserById(userId)).to.be.fulfilled
+    })
+
+    it('should get a user by its id with options', async function () {
+      this.user.expects('findUnique').once().resolves()
+
+      await expect(
+        userService.getUserById(userId, {
+          select: { id: false }
+        })
+      ).to.be.fulfilled
+    })
+  })
+
+  describe('updateUserById()', () => {
+    const userId = '77976d43-c76e-4b0c-943c-342b0f7d6cc4'
+
+    it('should update a user by its id', async function () {
+      this.user.expects('update').once().resolves()
+
+      await expect(
+        userService.updateUserById(userId, {
+          data: { name: user.name }
+        })
+      ).to.be.fulfilled
+    })
+
+    it('should update a user by its id with options', async function () {
+      this.user.expects('update').once().resolves()
+
+      await expect(
+        userService.updateUserById(userId, {
+          data: { name: user.name },
+          select: { id: false }
+        })
+      ).to.be.fulfilled
+    })
+  })
+
   describe('createUser()', () => {
     it('should create a new user', async function () {
       this.user.expects('create').once().resolves()
