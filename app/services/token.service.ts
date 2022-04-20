@@ -96,25 +96,6 @@ export class TokenService {
     return Buffer.from(base64Payload, 'base64').toString('utf-8')
   }
 
-  generateAccessToken = ({
-    userId,
-    nonce
-  }: {
-    userId: string
-    nonce: string
-  }) => {
-    const accessToken = this.jwt.sign(
-      { sub: userId, jti: nonce },
-      // A numeric value is interpreted as a seconds count.
-      // If you use a string be sure you provide the time units (days, hours, etc.),
-      // otherwise milliseconds unit is used by default ("120" is equal to "120ms").
-      // https://github.com/fastify/fastify-jwt#sign
-      { expiresIn: env.TOKEN_ACCESS_EXPIRATION.toString() }
-    )
-
-    return accessToken
-  }
-
   generateRefreshToken = ({
     sessionId,
     nonce
@@ -140,6 +121,31 @@ export class TokenService {
       throw new httpErrors.Unauthorized('Invalid refresh token')
     }
   }
+
+  generateAccessToken = ({
+    userId,
+    nonce
+  }: {
+    userId: string
+    nonce: string
+  }) => {
+    const accessToken = this.jwt.sign(
+      { sub: userId, jti: nonce },
+      // A numeric value is interpreted as a seconds count.
+      // If you use a string be sure you provide the time units (days, hours, etc.),
+      // otherwise milliseconds unit is used by default ("120" is equal to "120ms").
+      // https://github.com/fastify/fastify-jwt#sign
+      { expiresIn: env.TOKEN_ACCESS_EXPIRATION.toString() }
+    )
+
+    return accessToken
+  }
+
+  generateVerifyEmailToken = (userId: string) =>
+    this.jwt.sign(
+      { sub: userId, type: 'verify-email' },
+      { expiresIn: env.TOKEN_VERIFY_EMAIL_EXPIRATION.toString() }
+    )
 }
 
 export default TokenService

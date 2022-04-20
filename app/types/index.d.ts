@@ -19,9 +19,11 @@ interface BaseEnv {
 export interface RawEnv extends BaseEnv {
   TOKEN_ACCESS_EXPIRATION: string
   TOKEN_REFRESH_EXPIRATION: string
+  TOKEN_VERIFY_EMAIL_EXPIRATION: string
 }
 
 export interface ENV extends BaseEnv {
   TOKEN_ACCESS_EXPIRATION: number
   TOKEN_REFRESH_EXPIRATION: number
+  TOKEN_VERIFY_EMAIL_EXPIRATION: number
 }

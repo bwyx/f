@@ -28,6 +28,7 @@ const rawEnv: RawEnv = envSchema({
       SMTP_FROM_EMAIL: { type: 'string' },
       TOKEN_ACCESS_EXPIRATION: { type: 'string', default: '1h' },
       TOKEN_REFRESH_EXPIRATION: { type: 'string', default: '7d' },
+      TOKEN_VERIFY_EMAIL_EXPIRATION: { type: 'string', default: '5m' },
       TRUST_PROXY: { type: 'boolean', default: false }
     }
   }
@@ -36,7 +37,8 @@ const rawEnv: RawEnv = envSchema({
 const convertTemporalEnv = (): ENV => ({
   ...rawEnv,
   TOKEN_ACCESS_EXPIRATION: parseTime(rawEnv.TOKEN_ACCESS_EXPIRATION),
-  TOKEN_REFRESH_EXPIRATION: parseTime(rawEnv.TOKEN_REFRESH_EXPIRATION)
+  TOKEN_REFRESH_EXPIRATION: parseTime(rawEnv.TOKEN_REFRESH_EXPIRATION),
+  TOKEN_VERIFY_EMAIL_EXPIRATION: parseTime(rawEnv.TOKEN_VERIFY_EMAIL_EXPIRATION)
 })
 
 export const env = convertTemporalEnv()
