@@ -50,3 +50,7 @@ export const fastifyConfig: FastifyServerOptions = {
     level: env.APP_DEBUG ? 'debug' : 'info'
   }
 }
+
+export const tokenTypes = {
+  VERIFY_EMAIL: 'verify-email'
+}

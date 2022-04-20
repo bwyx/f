@@ -4,7 +4,7 @@ import httpErrors from 'http-errors'
 
 import type { JWT } from 'fastify-jwt'
 
-import { env } from '../config/index.js'
+import { env, tokenTypes } from '../config/index.js'
 
 const key32 = (key: string) => key.substring(0, 32)
 
@@ -143,7 +143,7 @@ export class TokenService {
 
   generateVerifyEmailToken = (userId: string) =>
     this.jwt.sign(
-      { sub: userId, type: 'verify-email' },
+      { sub: userId, type: tokenTypes.VERIFY_EMAIL },
       { expiresIn: env.TOKEN_VERIFY_EMAIL_EXPIRATION.toString() }
     )
 }

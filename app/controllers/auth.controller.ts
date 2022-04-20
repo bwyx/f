@@ -4,6 +4,7 @@ import type { FastifyInstance, RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
 import { registerBody, loginBody } from '../validations/auth.schema.js'
+import { tokenTypes } from '../config/index.js'
 
 export class AuthController {
   private userService
@@ -12,10 +13,13 @@ export class AuthController {
 
   private tokenService
 
+  private mailService
+
   constructor(_services: FastifyInstance['services']) {
     this.userService = _services.user
     this.sessionService = _services.session
     this.tokenService = _services.token
+    this.mailService = _services.mail
   }
 
   register: RouteHandler<{
@@ -109,6 +113,51 @@ export class AuthController {
         nonce: nextNonce
       })
     })
+  }
+
+  sendVerificationEmail: RouteHandler = async (req, rep) => {
+    const { sub } = req.user
+    const user = await this.userService.getUserById(sub)
+
+    if (!user) {
+      rep.notFound('User not found')
+    } else if (user.verifiedAt) {
+      rep.badRequest('User already verified')
+    } else {
+      const verifyEmailToken = this.tokenService.generateVerifyEmailToken(sub)
+      await this.mailService.sendVerificationEmail(user.email, verifyEmailToken)
+
+      rep.send()
+    }
+  }
+
+  verifyEmail: RouteHandler = async (req, rep) => {
+    const { sub, type } = req.user
+    if (type !== tokenTypes.VERIFY_EMAIL) {
+      rep.unauthorized('Invalid token type')
+      return
+    }
+
+    const user = await this.userService.getUserById(sub, {
+      select: { verifiedAt: true }
+    })
+
+    if (!user) {
+      rep.notFound('User not found')
+    } else if (user.verifiedAt) {
+      rep.badRequest('User already verified')
+    } else {
+      const verifiedUser = await this.userService.updateUserById(sub, {
+        data: { verifiedAt: new Date() },
+        select: {
+          name: true,
+          email: true,
+          verifiedAt: true
+        }
+      })
+
+      rep.send(verifiedUser)
+    }
   }
 }
 
