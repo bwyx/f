@@ -5,6 +5,13 @@ interface BaseEnv {
   APP_PORT: number
   APP_DEBUG: boolean
   FRONTEND_DOMAIN: string
+  SMTP_HOST: string
+  SMTP_PORT: number
+  SMTP_SECURE: boolean
+  SMTP_USER: string
+  SMTP_PASS: string
+  SMTP_FROM_NAME: string
+  SMTP_FROM_EMAIL: string
   TRUST_PROXY: boolean
 }
 

@@ -18,6 +18,13 @@ const rawEnv: RawEnv = envSchema({
       APP_PORT: { type: 'number', default: 5000 },
       APP_DEBUG: { type: 'boolean', default: false },
       FRONTEND_DOMAIN: { type: 'string' },
+      SMTP_HOST: { type: 'string' },
+      SMTP_PORT: { type: 'number' },
+      SMTP_SECURE: { type: 'boolean', default: true },
+      SMTP_USER: { type: 'string' },
+      SMTP_PASS: { type: 'string' },
+      SMTP_FROM_NAME: { type: 'string', default: 'f' },
+      SMTP_FROM_EMAIL: { type: 'string' },
       TOKEN_ACCESS_EXPIRATION: { type: 'string', default: '1h' },
       TOKEN_REFRESH_EXPIRATION: { type: 'string', default: '7d' },
       TRUST_PROXY: { type: 'boolean', default: false }
