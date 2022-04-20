@@ -1,12 +1,18 @@
 import fp from 'fastify-plugin'
 import jwt, { FastifyJWTOptions } from 'fastify-jwt'
 
-import type { FastifyRequest } from 'fastify'
+import type { FastifyReply, FastifyRequest } from 'fastify'
 
 import { extractToken } from './jwtCookie.js'
 import { env } from '../config/index.js'
 
-const verifyJwt = (req: FastifyRequest) => req.jwtVerify()
+const verifyJwt = async (req: FastifyRequest, rep: FastifyReply) => {
+  try {
+    await req.jwtVerify()
+  } catch (e) {
+    rep.unauthorized((<Error>e).message)
+  }
+}
 
 /**
  * This will decorate your fastify instance with the following methods: decode, sign, and verify;
