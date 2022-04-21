@@ -143,7 +143,7 @@ export class TokenService {
 
   generateVerifyEmailToken = (userId: string) =>
     this.jwt.sign(
-      { sub: userId, type: tokenTypes.VERIFY_EMAIL },
+      { sub: userId, typ: tokenTypes.VERIFY_EMAIL },
       { expiresIn: env.TOKEN_VERIFY_EMAIL_EXPIRATION.toString() }
     )
 }

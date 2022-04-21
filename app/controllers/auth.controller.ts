@@ -132,8 +132,8 @@ export class AuthController {
   }
 
   verifyEmail: RouteHandler = async (req, rep) => {
-    const { sub, type } = req.user
-    if (type !== tokenTypes.VERIFY_EMAIL) {
+    const { sub, typ } = req.user
+    if (typ !== tokenTypes.VERIFY_EMAIL) {
       rep.unauthorized('Invalid token type')
       return
     }

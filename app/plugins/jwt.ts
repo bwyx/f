@@ -44,7 +44,15 @@ declare module 'fastify-jwt' {
     payload: {
       sub: string
       jti?: string
-      type?: string
+      typ?: string
+    }
+
+    user: {
+      sub: string
+      iat: number
+      exp: number
+      jti?: string
+      typ?: string
     }
   }
 }
