@@ -3,6 +3,7 @@ import cryptoRandomString from 'crypto-random-string'
 import httpErrors from 'http-errors'
 
 import type { JWT } from 'fastify-jwt'
+import type { Redis } from 'ioredis'
 
 import { env, tokenTypes } from '../config/index.js'
 
@@ -11,12 +12,15 @@ const key32 = (key: string) => key.substring(0, 32)
 export class TokenService {
   private jwt
 
+  private redis
+
   private key
 
   private algorithm = 'aes-256-ctr'
 
-  constructor(_jwt: JWT, _key = env.APP_KEY) {
+  constructor(_jwt: JWT, _redis: Redis, _key = env.APP_KEY) {
     this.jwt = _jwt
+    this.redis = _redis
     this.key = _key
   }
 
@@ -146,6 +150,23 @@ export class TokenService {
       { sub: userId, type: tokenTypes.VERIFY_EMAIL, jti: this.generateNonce() },
       { expiresIn: env.TOKEN_VERIFY_EMAIL_EXPIRATION.toString() }
     )
+
+  checkThenBlacklistToken = async (
+    userId: string,
+    jti: string,
+    tokenExpires: number
+  ) => {
+    const BLACKLISTED = '1'
+    const key = `blacklist:${userId}:${jti}`
+
+    if ((await this.redis.get(key)) !== null) {
+      throw httpErrors(401, 'Authorization token expired')
+    }
+
+    const now = Math.floor(Date.now() / 1000)
+    const ttl = tokenExpires - now + 5 // 5 plus seconds to be sure
+    return this.redis.setex(key, ttl, BLACKLISTED)
+  }
 }
 
 export default TokenService

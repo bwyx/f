@@ -131,7 +131,8 @@ export class AuthController {
   }
 
   verifyEmail: RouteHandler = async (req, rep) => {
-    const { sub } = req.user
+    const { sub, jti, exp } = req.user
+    await this.tokenService.checkThenBlacklistToken(sub, jti, exp)
 
     const user = await this.userService.getUserById(sub, {
       select: { verifiedAt: true }

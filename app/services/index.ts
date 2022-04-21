@@ -21,7 +21,7 @@ export default fp(async (f) => {
   f.decorate('services', {
     mail: new MailService(f.mailer),
     session: new SessionService(f.prisma.session),
-    token: new TokenService(f.jwt),
+    token: new TokenService(f.jwt, f.redis),
     user: new UserService(f.prisma.user)
   })
 })

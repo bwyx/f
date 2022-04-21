@@ -4,23 +4,33 @@ import chai, { expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import httpErrors from 'http-errors'
 
+import type { Redis } from 'ioredis'
+
 import { jwt } from '../mocks.js'
 import { TokenService } from '../../services/token.service.js'
 
 chai.use(chaiAsPromised)
 
+const redis: Partial<Redis> = {
+  get: () => <any>{},
+  setex: () => <any>{}
+}
+
 describe('[Service: Token]', () => {
   const key = 'TEST_CcJWC4NvmVknXfcRvksqpsdtXwGP5SPj'
 
-  const tokenService = new TokenService(jwt, key)
+  const tokenService = new TokenService(jwt, redis as any, key)
 
   beforeEach(function () {
     this.jwt = sinon.mock(jwt)
+    this.redis = sinon.mock(redis)
   })
 
   afterEach(function () {
     this.jwt.verify()
     this.jwt.restore()
+    this.redis.verify()
+    this.redis.restore()
   })
 
   const UUID = '77976d43-c76e-4b0c-943c-342b0f7d6cc4'
@@ -121,6 +131,26 @@ describe('[Service: Token]', () => {
 
         expect(verify).to.throw(httpErrors.Unauthorized)
       })
+    })
+  })
+
+  describe('checkThenBlacklistToken()', () => {
+    it('should blacklist the token', async function () {
+      this.redis.expects('get').once().resolves(null)
+      this.redis.expects('setex').once().resolves('OK')
+
+      await expect(
+        tokenService.checkThenBlacklistToken('someUserId', 'someJti', 234234)
+      ).to.be.fulfilled
+    })
+
+    it('should throw if token already blacklisted', async function () {
+      this.redis.expects('get').once().resolves('any_value')
+      this.redis.expects('setex').never()
+
+      await expect(
+        tokenService.checkThenBlacklistToken('someUserId', 'someJti', 234234)
+      ).to.be.rejectedWith(httpErrors.Unauthorized)
     })
   })
 })
