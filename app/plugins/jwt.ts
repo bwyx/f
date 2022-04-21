@@ -13,6 +13,7 @@ const verifyJwt =
       await req.jwtVerify()
     } catch (e) {
       rep.unauthorized((<Error>e).message)
+      return
     }
 
     if (req.user.type !== type) {
