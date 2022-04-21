@@ -4,7 +4,6 @@ import type { FastifyInstance, RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
 import { registerBody, loginBody } from '../validations/auth.schema.js'
-import { tokenTypes } from '../config/index.js'
 
 export class AuthController {
   private userService
@@ -132,11 +131,7 @@ export class AuthController {
   }
 
   verifyEmail: RouteHandler = async (req, rep) => {
-    const { sub, typ } = req.user
-    if (typ !== tokenTypes.VERIFY_EMAIL) {
-      rep.unauthorized('Invalid token type')
-      return
-    }
+    const { sub } = req.user
 
     const user = await this.userService.getUserById(sub, {
       select: { verifiedAt: true }

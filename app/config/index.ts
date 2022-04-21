@@ -5,6 +5,8 @@ import type { ENV, RawEnv } from '../types'
 
 import { parseTime } from '../utils/time.util.js'
 
+export * as tokenTypes from './tokenTypes.js'
+
 const rawEnv: RawEnv = envSchema({
   dotenv: true,
   expandEnv: true,
@@ -52,8 +54,4 @@ export const fastifyConfig: FastifyServerOptions = {
   logger: {
     level: env.APP_DEBUG ? 'debug' : 'info'
   }
-}
-
-export const tokenTypes = {
-  VERIFY_EMAIL: 'verify-email'
 }

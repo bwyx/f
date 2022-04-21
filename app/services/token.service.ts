@@ -130,7 +130,7 @@ export class TokenService {
     nonce: string
   }) => {
     const accessToken = this.jwt.sign(
-      { sub: userId, jti: nonce },
+      { sub: userId, type: tokenTypes.ACCESS, jti: nonce },
       // A numeric value is interpreted as a seconds count.
       // If you use a string be sure you provide the time units (days, hours, etc.),
       // otherwise milliseconds unit is used by default ("120" is equal to "120ms").
@@ -143,7 +143,7 @@ export class TokenService {
 
   generateVerifyEmailToken = (userId: string) =>
     this.jwt.sign(
-      { sub: userId, typ: tokenTypes.VERIFY_EMAIL },
+      { sub: userId, type: tokenTypes.VERIFY_EMAIL, jti: this.generateNonce() },
       { expiresIn: env.TOKEN_VERIFY_EMAIL_EXPIRATION.toString() }
     )
 }

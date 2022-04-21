@@ -4,15 +4,21 @@ import jwt, { FastifyJWTOptions } from 'fastify-jwt'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 
 import { extractToken } from './jwtCookie.js'
-import { env } from '../config/index.js'
+import { env, tokenTypes } from '../config/index.js'
 
-const verifyJwt = async (req: FastifyRequest, rep: FastifyReply) => {
-  try {
-    await req.jwtVerify()
-  } catch (e) {
-    rep.unauthorized((<Error>e).message)
+const verifyJwt =
+  (type: string = tokenTypes.ACCESS) =>
+  async (req: FastifyRequest, rep: FastifyReply) => {
+    try {
+      await req.jwtVerify()
+    } catch (e) {
+      rep.unauthorized((<Error>e).message)
+    }
+
+    if (req.user.type !== type) {
+      rep.unauthorized('Invalid token type')
+    }
   }
-}
 
 /**
  * This will decorate your fastify instance with the following methods: decode, sign, and verify;
@@ -43,16 +49,16 @@ declare module 'fastify-jwt' {
     // payload type is used for signing and verifying
     payload: {
       sub: string
-      jti?: string
-      typ?: string
+      jti: string
+      type: string
     }
 
     user: {
       sub: string
       iat: number
       exp: number
-      jti?: string
-      typ?: string
+      jti: string
+      type: string
     }
   }
 }
