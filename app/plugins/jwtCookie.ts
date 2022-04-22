@@ -106,25 +106,25 @@ export const extractToken = (req: FastifyRequest) => {
 
 // eslint-disable-next-line no-unused-vars
 export function getRefreshToken(this: FastifyRequest) {
-  let token
-
-  try {
-    token = getAuthorizationBearer(this)
-  } catch (e) {
-    if (isFromFrontend(this)) {
-      const cookieRefresh = this.cookies[COOKIE.REFRESH]
-
-      if (!cookieRefresh) {
-        throw httpErrors(401, 'No Authorization was found in request.cookies')
-      }
-
-      token = cookieRefresh
-    } else {
-      throw e
+  if (this.body !== null && typeof this.body === 'object') {
+    const { refreshToken } = this.body as Record<string, string | undefined>
+    if (!refreshToken) {
+      throw httpErrors(401, 'No refresh token was found in request.body')
     }
+
+    return refreshToken
   }
 
-  return token
+  if (!isFromFrontend(this)) {
+    throw httpErrors(401, 'No refresh token was found in request.body')
+  }
+
+  const cookieRefresh = this.cookies[COOKIE.REFRESH]
+  if (!cookieRefresh) {
+    throw httpErrors(401, 'No refresh token was found in request.cookies')
+  }
+
+  return cookieRefresh
 }
 
 export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {

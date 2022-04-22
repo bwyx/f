@@ -200,13 +200,16 @@ describe('[Route: Auth]', async () => {
         url: 'auth/login',
         payload: login1
       })
-      const { refresh } = loginResponse.json()
+      const { access, refresh } = loginResponse.json()
 
       const resp = await this.f.inject({
         method,
         url,
         headers: {
-          authorization: `Bearer ${refresh}`
+          authorization: `Bearer ${access}`
+        },
+        payload: {
+          refreshToken: refresh
         }
       })
 
