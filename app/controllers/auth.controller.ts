@@ -1,6 +1,7 @@
 import { compare } from 'bcrypt'
 
 import type { FastifyInstance, RouteHandler } from 'fastify'
+import type { FastifyJWT } from 'fastify-jwt'
 import type { FromSchema } from 'json-schema-to-ts'
 
 import { registerBody, loginBody } from '../validations/auth.schema.js'
@@ -70,18 +71,32 @@ export class AuthController {
   }
 
   logout: RouteHandler = async (req, rep) => {
+    let message = 'Successfully logged out'
     try {
-      // TODO: blacklist access token jti (tokenNonce)
-      const refreshToken = req.getRefreshToken()
-      const { sessionId } = this.tokenService.verifyRefreshToken(refreshToken)
+      const { sub, jti, exp } = (await req.jwtDecode()) as FastifyJWT['user']
 
-      await this.sessionService.deleteSessionById(sessionId)
+      const blacklistResult = await this.tokenService.blacklistToken(sub, jti, {
+        expiresAt: exp
+      })
+
+      if (blacklistResult === 'OK') {
+        const deletedSession = await this.sessionService.deleteSession({
+          userId: sub,
+          nonce: jti
+        })
+
+        if (deletedSession === null) {
+          message = 'Already logged out'
+        }
+      } else {
+        message = 'Already logged out'
+      }
     } catch (e) {
       // do nothing
     }
 
     rep.destroyFrontendAuthCookies()
-    rep.code(200).send()
+    rep.code(200).send({ message })
   }
 
   getSessions: RouteHandler = async (req, rep) => {

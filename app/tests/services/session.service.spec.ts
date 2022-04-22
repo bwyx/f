@@ -131,6 +131,24 @@ describe('[Service: Session]', () => {
     })
   })
 
+  describe('deleteSession()', () => {
+    it('should delete a session', async function () {
+      this.session.expects('delete').once().resolves(session)
+
+      await expect(
+        sessionService.deleteSession({ userId: UUID, nonce: NONCE })
+      ).to.be.fulfilled.and.eventually.equal(session)
+    })
+
+    it('should not throw an error if no session record is found', async function () {
+      this.session.expects('delete').once().rejects(prismaError('P2025'))
+
+      await expect(
+        sessionService.deleteSession({ userId: UUID, nonce: NONCE })
+      ).to.be.fulfilled.and.eventually.equal(null)
+    })
+  })
+
   describe('deleteSessionById()', () => {
     it('should delete a session', async function () {
       this.session.expects('delete').once().resolves(session)

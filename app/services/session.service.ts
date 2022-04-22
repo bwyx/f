@@ -67,6 +67,26 @@ export class SessionService {
       where: { userId }
     })
 
+  deleteSession = async ({
+    userId,
+    nonce
+  }: {
+    userId: string
+    nonce: string
+  }) => {
+    try {
+      return await this.session.delete({
+        where: { userId_nonce: { userId, nonce } }
+      })
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') return null
+      }
+
+      throw e
+    }
+  }
+
   deleteSessionById = async (sessionId: string) => {
     try {
       return await this.session.delete({
