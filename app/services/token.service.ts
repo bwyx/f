@@ -151,21 +151,63 @@ export class TokenService {
       { expiresIn: env.TOKEN_VERIFY_EMAIL_EXPIRATION.toString() }
     )
 
-  checkThenBlacklistToken = async (
-    userId: string,
-    jti: string,
-    tokenExpires: number
-  ) => {
-    const BLACKLISTED = '1'
+  checkBlacklisted = async (userId: string, jti: string) => {
     const key = `blacklist:${userId}:${jti}`
 
     if ((await this.redis.get(key)) !== null) {
       throw httpErrors(401, 'Authorization token expired')
     }
+  }
 
-    const now = Math.floor(Date.now() / 1000)
-    const ttl = tokenExpires - now + 5 // 5 plus seconds to be sure
-    return this.redis.setex(key, ttl, BLACKLISTED)
+  blacklistToken = async (
+    userId: string,
+    jti: string,
+    {
+      ttl,
+      ttlMs,
+      expiresAt,
+      expiresAtMs
+    }: {
+      ttl?: number
+      ttlMs?: number
+      expiresAt?: number
+      expiresAtMs?: number
+    }
+  ) => {
+    const key = `blacklist:${userId}:${jti}`
+
+    if (ttl) {
+      return this.redis.set(key, '1', 'EX', ttl, 'NX')
+    }
+
+    if (ttlMs) {
+      return this.redis.set(key, '1', 'PX', ttlMs, 'NX')
+    }
+
+    if (expiresAt) {
+      return this.redis.set(key, '1', 'EXAT', expiresAt, 'NX')
+    }
+
+    if (expiresAtMs) {
+      return this.redis.set(key, '1', 'PXAT', expiresAtMs, 'NX')
+    }
+
+    throw httpErrors(
+      500,
+      'please provide one of: ttl, ttlMs, expiresAt, expiresAtMs'
+    )
+  }
+
+  checkThenBlacklistToken = async (
+    userId: string,
+    jti: string,
+    expiresAt: number
+  ) => {
+    const result = await this.blacklistToken(userId, jti, { expiresAt })
+
+    if (result === null) {
+      throw httpErrors(401, 'Authorization token expired')
+    }
   }
 }
 

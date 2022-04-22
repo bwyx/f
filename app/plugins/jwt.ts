@@ -7,7 +7,7 @@ import { extractToken } from './jwtCookie.js'
 import { env, tokenTypes } from '../config/index.js'
 
 const verifyJwt =
-  (type: string = tokenTypes.ACCESS) =>
+  (type: string = tokenTypes.ACCESS, checkBlacklisted = true) =>
   async (req: FastifyRequest, rep: FastifyReply) => {
     try {
       await req.jwtVerify()
@@ -18,6 +18,13 @@ const verifyJwt =
 
     if (req.user.type !== type) {
       rep.unauthorized('Invalid token type')
+    }
+
+    if (checkBlacklisted) {
+      await req.server.services.token.checkBlacklisted(
+        req.user.sub,
+        req.user.jti
+      )
     }
   }
 
@@ -32,6 +39,7 @@ const verifyJwt =
 export default fp<FastifyJWTOptions>(async (f) => {
   f.register(jwt, {
     secret: env.APP_KEY,
+    jwtDecode: true,
     verify: { extractToken }
   })
   f.decorate('verifyJwt', verifyJwt)
