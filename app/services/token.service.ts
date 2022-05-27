@@ -4,7 +4,8 @@ import httpErrors from 'http-errors'
 
 import type { JWT } from 'fastify-jwt'
 
-import { env, tokenTypes } from '../config/index.js'
+import { env } from '../config/index.js'
+import { ACCESS, VERIFY_EMAIL } from '../config/tokenTypes.js'
 
 const key32 = (key: string) => key.substring(0, 32)
 
@@ -130,7 +131,7 @@ export class TokenService {
     nonce: string
   }) => {
     const accessToken = this.jwt.sign(
-      { sub: userId, jti: nonce },
+      { sub: userId, type: ACCESS, jti: nonce },
       // A numeric value is interpreted as a seconds count.
       // If you use a string be sure you provide the time units (days, hours, etc.),
       // otherwise milliseconds unit is used by default ("120" is equal to "120ms").
@@ -143,7 +144,7 @@ export class TokenService {
 
   generateVerifyEmailToken = (userId: string) =>
     this.jwt.sign(
-      { sub: userId, type: tokenTypes.VERIFY_EMAIL },
+      { sub: userId, type: VERIFY_EMAIL, jti: this.generateNonce() },
       { expiresIn: env.TOKEN_VERIFY_EMAIL_EXPIRATION.toString() }
     )
 }

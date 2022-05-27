@@ -6,6 +6,8 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { extractToken } from './jwtCookie.js'
 import { env } from '../config/index.js'
 
+import type { TokenType } from '../config/tokenTypes.js'
+
 const verifyJwt = async (req: FastifyRequest, rep: FastifyReply) => {
   try {
     await req.jwtVerify()
@@ -43,8 +45,16 @@ declare module 'fastify-jwt' {
     // payload type is used for signing and verifying
     payload: {
       sub: string
-      jti?: string
-      type?: string
+      jti: string
+      type: TokenType
+    }
+
+    user: {
+      sub: string
+      jti: string
+      type: TokenType
+      iat: number
+      exp: number
     }
   }
 }
