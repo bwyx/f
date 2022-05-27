@@ -2,10 +2,10 @@ import crypto from 'crypto'
 import cryptoRandomString from 'crypto-random-string'
 import httpErrors from 'http-errors'
 
-import type { JWT } from 'fastify-jwt'
+import type { FastifyJWT, JWT } from 'fastify-jwt'
 
 import { env } from '../config/index.js'
-import { ACCESS, VERIFY_EMAIL } from '../config/tokenTypes.js'
+import { ACCESS, VERIFY_EMAIL, TokenType } from '../config/tokenTypes.js'
 
 const key32 = (key: string) => key.substring(0, 32)
 
@@ -121,6 +121,26 @@ export class TokenService {
     } catch (e) {
       throw new httpErrors.Unauthorized('Invalid refresh token')
     }
+  }
+
+  verifyJwt = (token: string, type: TokenType) => {
+    let payload
+
+    try {
+      payload = this.jwt.verify<FastifyJWT['user']>(token)
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new httpErrors.Unauthorized(e.message)
+      }
+
+      throw e
+    }
+
+    if (payload.type !== type) {
+      throw new httpErrors.Unauthorized('Invalid token type')
+    }
+
+    return payload
   }
 
   generateAccessToken = ({

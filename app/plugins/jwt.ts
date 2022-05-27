@@ -6,13 +6,17 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { extractToken } from './jwtCookie.js'
 import { env } from '../config/index.js'
 
-import type { TokenType } from '../config/tokenTypes.js'
+import { ACCESS, TokenType } from '../config/tokenTypes.js'
 
-const verifyJwt = async (req: FastifyRequest, rep: FastifyReply) => {
+const authenticate = async (req: FastifyRequest, rep: FastifyReply) => {
   try {
     await req.jwtVerify()
   } catch (e) {
     rep.unauthorized((<Error>e).message)
+  }
+
+  if (req.user.type === ACCESS) {
+    rep.unauthorized('Invalid token type')
   }
 }
 
@@ -29,13 +33,13 @@ export default fp<FastifyJWTOptions>(async (f) => {
     secret: env.APP_KEY,
     verify: { extractToken }
   })
-  f.decorate('verifyJwt', verifyJwt)
+  f.decorate('authenticate', authenticate)
 })
 
 declare module 'fastify' {
   // eslint-disable-next-line no-unused-vars, no-shadow
   interface FastifyInstance {
-    verifyJwt: typeof verifyJwt
+    authenticate: typeof authenticate
   }
 }
 

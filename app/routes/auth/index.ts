@@ -3,7 +3,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import { registerBody, loginBody } from '../../validations/auth.schema.js'
 
 const routes: FastifyPluginAsync = async (f) => {
-  const { verifyJwt } = f
+  const { authenticate } = f
   const { auth } = f.controllers
 
   f.route({
@@ -29,7 +29,7 @@ const routes: FastifyPluginAsync = async (f) => {
   f.route({
     method: 'GET',
     url: '/sessions',
-    onRequest: verifyJwt,
+    onRequest: authenticate,
     handler: auth.getSessions
   })
 
@@ -42,14 +42,14 @@ const routes: FastifyPluginAsync = async (f) => {
   f.route({
     method: 'POST',
     url: '/send-verification-email',
-    onRequest: verifyJwt,
+    onRequest: authenticate,
     handler: auth.sendVerificationEmail
   })
 
   f.route({
     method: 'POST',
     url: '/verify-email',
-    onRequest: verifyJwt,
+    onRequest: authenticate,
     handler: auth.verifyEmail
   })
 }
