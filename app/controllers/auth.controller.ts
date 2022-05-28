@@ -167,12 +167,9 @@ export class AuthController {
   sendResetPasswordEmail: RouteHandler<{
     Body: FromSchema<typeof forgotPasswordBody>
   }> = async (req, rep) => {
-    const { email } = req.body
-    const user = await this.userService.getUserByEmail(email)
+    const user = await this.userService.getUserByEmail(req.body.email)
 
-    if (!user) {
-      rep.notFound('User not found')
-    } else {
+    if (user) {
       const resetPasswordToken = this.tokenService.generateResetPasswordToken(
         user.id
       )
@@ -181,8 +178,9 @@ export class AuthController {
         user.email,
         resetPasswordToken
       )
-      rep.send()
     }
+
+    rep.send()
   }
 
   resetPassword: RouteHandler<{
