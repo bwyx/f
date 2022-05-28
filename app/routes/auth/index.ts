@@ -1,6 +1,10 @@
 import type { FastifyPluginAsync } from 'fastify'
 
-import { registerBody, loginBody } from '../../validations/auth.schema.js'
+import {
+  registerBody,
+  loginBody,
+  verifyEmailQuery
+} from '../../validations/auth.schema.js'
 
 const routes: FastifyPluginAsync = async (f) => {
   const { authenticate } = f
@@ -49,7 +53,7 @@ const routes: FastifyPluginAsync = async (f) => {
   f.route({
     method: 'POST',
     url: '/verify-email',
-    onRequest: authenticate,
+    schema: { querystring: verifyEmailQuery },
     handler: auth.verifyEmail
   })
 }

@@ -16,3 +16,11 @@ export const loginBody = {
     password: { type: 'string' }
   }
 } as const
+
+export const verifyEmailQuery = {
+  type: 'object',
+  required: ['token'],
+  properties: {
+    token: { type: 'string' }
+  }
+} as const

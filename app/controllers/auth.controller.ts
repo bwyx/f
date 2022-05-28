@@ -3,8 +3,12 @@ import { compare } from 'bcrypt'
 import type { FastifyInstance, RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
-import { registerBody, loginBody } from '../validations/auth.schema.js'
-import { tokenTypes } from '../config/index.js'
+import {
+  registerBody,
+  loginBody,
+  verifyEmailQuery
+} from '../validations/auth.schema.js'
+import { VERIFY_EMAIL } from '../config/tokenTypes.js'
 
 export class AuthController {
   private userService
@@ -131,12 +135,10 @@ export class AuthController {
     }
   }
 
-  verifyEmail: RouteHandler = async (req, rep) => {
-    const { sub, type } = req.user
-    if (type !== tokenTypes.VERIFY_EMAIL) {
-      rep.unauthorized('Invalid token type')
-      return
-    }
+  verifyEmail: RouteHandler<{
+    Querystring: FromSchema<typeof verifyEmailQuery>
+  }> = async (req, rep) => {
+    const { sub } = this.tokenService.verifyJwt(req.query.token, VERIFY_EMAIL)
 
     const user = await this.userService.getUserById(sub, {
       select: { verifiedAt: true }
