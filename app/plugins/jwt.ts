@@ -15,7 +15,7 @@ const authenticate = async (req: FastifyRequest, rep: FastifyReply) => {
     rep.unauthorized((<Error>e).message)
   }
 
-  if (req.user.type === ACCESS) {
+  if (req.user.type !== ACCESS) {
     rep.unauthorized('Invalid token type')
   }
 }
