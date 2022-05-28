@@ -1,4 +1,4 @@
-import { compare } from 'bcrypt'
+import { hash, compare } from 'bcrypt'
 
 import type { FastifyInstance, RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
@@ -6,9 +6,11 @@ import type { FromSchema } from 'json-schema-to-ts'
 import {
   registerBody,
   loginBody,
-  verifyEmailQuery
+  verifyEmailQuery,
+  forgotPasswordBody,
+  resetPasswordBody
 } from '../validations/auth.schema.js'
-import { VERIFY_EMAIL } from '../config/tokenTypes.js'
+import { RESET_PASSWORD, VERIFY_EMAIL } from '../config/tokenTypes.js'
 
 export class AuthController {
   private userService
@@ -160,6 +162,55 @@ export class AuthController {
 
       rep.send(verifiedUser)
     }
+  }
+
+  sendResetPasswordEmail: RouteHandler<{
+    Body: FromSchema<typeof forgotPasswordBody>
+  }> = async (req, rep) => {
+    const { email } = req.body
+    const user = await this.userService.getUserByEmail(email)
+
+    if (!user) {
+      rep.notFound('User not found')
+    } else {
+      const resetPasswordToken = this.tokenService.generateResetPasswordToken(
+        user.id
+      )
+
+      await this.mailService.sendResetPasswordEmail(
+        user.email,
+        resetPasswordToken
+      )
+      rep.send()
+    }
+  }
+
+  resetPassword: RouteHandler<{
+    Querystring: FromSchema<typeof verifyEmailQuery>
+    Body: FromSchema<typeof resetPasswordBody>
+  }> = async (req, rep) => {
+    const { password } = req.body
+    const { sub } = this.tokenService.verifyJwt(req.query.token, RESET_PASSWORD)
+
+    const user = await this.userService.getUserById(sub)
+    if (!user) {
+      rep.notFound('User not found')
+      return
+    }
+
+    const matchOldPassword = await compare(password, user.passwordHash)
+    if (matchOldPassword) {
+      rep.badRequest('New password must be different from old password')
+      return
+    }
+
+    const passwordHash = await hash(password, 10)
+    await this.userService.updateUserById(sub, {
+      data: { passwordHash },
+      select: { id: true }
+    })
+
+    rep.send({ message: 'Password updated' })
   }
 }
 

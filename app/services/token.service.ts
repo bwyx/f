@@ -5,7 +5,12 @@ import httpErrors from 'http-errors'
 import type { FastifyJWT, JWT } from 'fastify-jwt'
 
 import { env } from '../config/index.js'
-import { ACCESS, VERIFY_EMAIL, TokenType } from '../config/tokenTypes.js'
+import {
+  ACCESS,
+  VERIFY_EMAIL,
+  TokenType,
+  RESET_PASSWORD
+} from '../config/tokenTypes.js'
 
 const key32 = (key: string) => key.substring(0, 32)
 
@@ -166,6 +171,12 @@ export class TokenService {
     this.jwt.sign(
       { sub: userId, type: VERIFY_EMAIL, jti: this.generateNonce() },
       { expiresIn: env.TOKEN_VERIFY_EMAIL_EXPIRATION.toString() }
+    )
+
+  generateResetPasswordToken = (userId: string) =>
+    this.jwt.sign(
+      { sub: userId, type: RESET_PASSWORD, jti: this.generateNonce() },
+      { expiresIn: env.TOKEN_RESET_PASSWORD_EXPIRATION.toString() }
     )
 }
 

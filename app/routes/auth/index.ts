@@ -3,7 +3,9 @@ import type { FastifyPluginAsync } from 'fastify'
 import {
   registerBody,
   loginBody,
-  verifyEmailQuery
+  verifyEmailQuery,
+  forgotPasswordBody,
+  resetPasswordQuery
 } from '../../validations/auth.schema.js'
 
 const routes: FastifyPluginAsync = async (f) => {
@@ -55,6 +57,20 @@ const routes: FastifyPluginAsync = async (f) => {
     url: '/verify-email',
     schema: { querystring: verifyEmailQuery },
     handler: auth.verifyEmail
+  })
+
+  f.route({
+    method: 'POST',
+    url: '/forgot-password',
+    schema: { body: forgotPasswordBody },
+    handler: auth.sendResetPasswordEmail
+  })
+
+  f.route({
+    method: 'POST',
+    url: '/reset-password',
+    schema: { querystring: resetPasswordQuery },
+    handler: auth.resetPassword
   })
 }
 

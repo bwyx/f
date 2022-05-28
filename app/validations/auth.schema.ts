@@ -24,3 +24,21 @@ export const verifyEmailQuery = {
     token: { type: 'string' }
   }
 } as const
+
+export const forgotPasswordBody = {
+  type: 'object',
+  required: ['email'],
+  properties: {
+    email: { type: 'string', format: 'email' }
+  }
+} as const
+
+export const resetPasswordQuery = verifyEmailQuery
+
+export const resetPasswordBody = {
+  type: 'object',
+  required: ['password'],
+  properties: {
+    password: { type: 'string' }
+  }
+} as const
