@@ -13,11 +13,7 @@ interface UpdateSession {
 }
 
 export class SessionService {
-  private session
-
-  constructor(_session: PrismaClient['session']) {
-    this.session = _session
-  }
+  constructor(private session: PrismaClient['session']) {}
 
   createSession = async ({ userId, nonce }: SessionCompoundUnique) => {
     const expires = new Date(Date.now() + env.TOKEN_REFRESH_EXPIRATION)

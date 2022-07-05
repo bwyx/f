@@ -37,14 +37,12 @@ export default fp<FastifyJWTOptions>(async (f) => {
 })
 
 declare module 'fastify' {
-  // eslint-disable-next-line no-unused-vars, no-shadow
   interface FastifyInstance {
     authenticate: typeof authenticate
   }
 }
 
 declare module 'fastify-jwt' {
-  // eslint-disable-next-line no-unused-vars
   interface FastifyJWT {
     // payload type is used for signing and verifying
     payload: {

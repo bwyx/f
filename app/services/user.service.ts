@@ -11,11 +11,7 @@ interface IUserCreate {
 }
 
 export class UserService {
-  private user
-
-  constructor(_user: PrismaClient['user']) {
-    this.user = _user
-  }
+  constructor(private user: PrismaClient['user']) {}
 
   getUserByEmail = (
     email: string,

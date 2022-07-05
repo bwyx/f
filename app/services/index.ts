@@ -5,8 +5,9 @@ import { TokenService } from './token.service.js'
 import { UserService } from './user.service.js'
 import { MailService } from './mail.service.js'
 
+export type { UserService, SessionService, TokenService, MailService }
+
 declare module 'fastify' {
-  // eslint-disable-next-line no-unused-vars
   interface FastifyInstance {
     services: {
       mail: MailService

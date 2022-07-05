@@ -1,6 +1,6 @@
 import { hash, compare } from 'bcrypt'
 
-import type { FastifyInstance, RouteHandler } from 'fastify'
+import type { RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
 import {
@@ -12,21 +12,20 @@ import {
 } from '../validations/auth.schema.js'
 import { RESET_PASSWORD, VERIFY_EMAIL } from '../config/tokenTypes.js'
 
+import type {
+  UserService,
+  SessionService,
+  TokenService,
+  MailService
+} from '../services'
+
 export class AuthController {
-  private userService
-
-  private sessionService
-
-  private tokenService
-
-  private mailService
-
-  constructor(_services: FastifyInstance['services']) {
-    this.userService = _services.user
-    this.sessionService = _services.session
-    this.tokenService = _services.token
-    this.mailService = _services.mail
-  }
+  constructor(
+    private userService: UserService,
+    private sessionService: SessionService,
+    private tokenService: TokenService,
+    private mailService: MailService
+  ) {}
 
   register: RouteHandler<{
     Body: FromSchema<typeof registerBody>

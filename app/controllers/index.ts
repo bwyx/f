@@ -4,7 +4,6 @@ import { AuthController } from './auth.controller.js'
 import { UserController } from './user.controller.js'
 
 declare module 'fastify' {
-  // eslint-disable-next-line no-unused-vars
   interface FastifyInstance {
     controllers: {
       auth: AuthController
@@ -14,8 +13,10 @@ declare module 'fastify' {
 }
 
 export default fp(async (f) => {
+  const { user, session, token, mail } = f.services
+
   f.decorate('controllers', {
-    auth: new AuthController(f.services),
-    user: new UserController(f.services)
+    auth: new AuthController(user, session, token, mail),
+    user: new UserController(user)
   })
 })

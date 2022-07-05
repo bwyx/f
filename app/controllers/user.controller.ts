@@ -1,14 +1,12 @@
-import type { FastifyInstance, RouteHandler } from 'fastify'
+import type { RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
 import { createUserBody, deleteUserParams } from '../validations/user.schema.js'
 
-export class UserController {
-  private userService
+import type { UserService } from '../services'
 
-  constructor(_services: FastifyInstance['services']) {
-    this.userService = _services.user
-  }
+export class UserController {
+  constructor(private userService: UserService) {}
 
   list: RouteHandler = async (req, rep) => {
     rep.send(await this.userService.queryUsers())

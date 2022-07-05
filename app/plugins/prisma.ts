@@ -10,7 +10,6 @@ const { PrismaClient } = Prisma
 
 // Use TypeScript module augmentation to declare the type of server.prisma to be PrismaClient
 declare module 'fastify' {
-  // eslint-disable-next-line no-unused-vars
   interface FastifyInstance {
     prisma: PrismaClientType
   }

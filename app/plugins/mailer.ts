@@ -5,7 +5,6 @@ import type SMTPTransport from 'nodemailer/lib/smtp-transport'
 import { env } from '../config/index.js'
 
 declare module 'fastify' {
-  // eslint-disable-next-line no-unused-vars
   interface FastifyInstance {
     mailer: Transporter<SMTPTransport.SentMessageInfo>
   }

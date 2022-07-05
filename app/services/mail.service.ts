@@ -3,11 +3,7 @@ import type { FastifyInstance } from 'fastify'
 import { env } from '../config/index.js'
 
 export class MailService {
-  private mailer
-
-  constructor(_mailer: FastifyInstance['mailer']) {
-    this.mailer = _mailer
-  }
+  constructor(private mailer: FastifyInstance['mailer']) {}
 
   sendVerificationEmail = async (to: string, token: string) => {
     const subject = 'Verify your email'

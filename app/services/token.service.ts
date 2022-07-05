@@ -15,16 +15,9 @@ import {
 const key32 = (key: string) => key.substring(0, 32)
 
 export class TokenService {
-  private jwt
-
-  private key
-
   private algorithm = 'aes-256-ctr'
 
-  constructor(_jwt: JWT, _key = env.APP_KEY) {
-    this.jwt = _jwt
-    this.key = _key
-  }
+  constructor(private jwt: JWT, private key = env.APP_KEY) {}
 
   // eslint-disable-next-line class-methods-use-this
   generateNonce = () => cryptoRandomString({ length: 16, type: 'base64' })
