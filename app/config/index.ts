@@ -5,7 +5,11 @@ import type { ENV, RawEnv } from '../types'
 
 import { parseTime } from '../utils/time.util.js'
 
-export * as tokenTypes from './tokenTypes.js'
+export enum TokenTypes {
+  ACCESS = 'access',
+  VERIFY_EMAIL = 'verify_email',
+  RESET_PASSWORD = 'reset_password'
+}
 
 const rawEnv: RawEnv = envSchema({
   dotenv: true,

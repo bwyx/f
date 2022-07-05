@@ -10,7 +10,7 @@ import {
   forgotPasswordBody,
   resetPasswordBody
 } from '../validations/auth.schema.js'
-import { RESET_PASSWORD, VERIFY_EMAIL } from '../config/tokenTypes.js'
+import { TokenTypes } from '../config/index.js'
 
 import type {
   UserService,
@@ -139,7 +139,10 @@ export class AuthController {
   verifyEmail: RouteHandler<{
     Querystring: FromSchema<typeof verifyEmailQuery>
   }> = async (req, rep) => {
-    const { sub } = this.tokenService.verifyJwt(req.query.token, VERIFY_EMAIL)
+    const { sub } = this.tokenService.verifyJwt(
+      req.query.token,
+      TokenTypes.VERIFY_EMAIL
+    )
 
     const user = await this.userService.getUserById(sub, {
       select: { verifiedAt: true }
@@ -187,7 +190,10 @@ export class AuthController {
     Body: FromSchema<typeof resetPasswordBody>
   }> = async (req, rep) => {
     const { password } = req.body
-    const { sub } = this.tokenService.verifyJwt(req.query.token, RESET_PASSWORD)
+    const { sub } = this.tokenService.verifyJwt(
+      req.query.token,
+      TokenTypes.RESET_PASSWORD
+    )
 
     const user = await this.userService.getUserById(sub)
     if (!user) {

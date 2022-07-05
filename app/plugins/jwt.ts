@@ -4,9 +4,7 @@ import jwt, { FastifyJWTOptions } from 'fastify-jwt'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 
 import { extractToken } from './jwtCookie.js'
-import { env } from '../config/index.js'
-
-import { ACCESS, TokenType } from '../config/tokenTypes.js'
+import { env, TokenTypes } from '../config/index.js'
 
 const authenticate = async (req: FastifyRequest, rep: FastifyReply) => {
   try {
@@ -15,7 +13,7 @@ const authenticate = async (req: FastifyRequest, rep: FastifyReply) => {
     rep.unauthorized((<Error>e).message)
   }
 
-  if (req.user.type !== ACCESS) {
+  if (req.user.type !== TokenTypes.ACCESS) {
     rep.unauthorized('Invalid token type')
   }
 }
@@ -48,13 +46,13 @@ declare module 'fastify-jwt' {
     payload: {
       sub: string
       jti: string
-      type: TokenType
+      type: TokenTypes
     }
 
     user: {
       sub: string
       jti: string
-      type: TokenType
+      type: TokenTypes
       iat: number
       exp: number
     }

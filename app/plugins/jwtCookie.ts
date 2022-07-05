@@ -104,7 +104,6 @@ export const extractToken = (req: FastifyRequest) => {
   return token
 }
 
-// eslint-disable-next-line no-unused-vars
 export function getRefreshToken(this: FastifyRequest) {
   if (typeof this.body === 'object' && this.body !== null) {
     const { refreshToken } = this.body as Record<string, string | undefined>
@@ -153,7 +152,6 @@ export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
 
 // Remove cookie server side
 // https://tools.ietf.org/search/rfc6265
-// eslint-disable-next-line no-unused-vars
 export function destroyFrontendAuthCookies(this: FastifyReply) {
   if (isFromFrontend(this.request)) {
     const EMPTY = ''
@@ -188,12 +186,12 @@ export default fp(async (f) => {
 })
 
 declare module 'fastify' {
-  // eslint-disable-next-line no-shadow
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   interface FastifyRequest {
     getRefreshToken: typeof getRefreshToken
   }
 
-  // eslint-disable-next-line no-shadow
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   interface FastifyReply {
     sendAuthTokens: typeof sendAuthTokens
     destroyFrontendAuthCookies: typeof destroyFrontendAuthCookies

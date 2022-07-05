@@ -4,13 +4,7 @@ import httpErrors from 'http-errors'
 
 import type { FastifyJWT, JWT } from 'fastify-jwt'
 
-import { env } from '../config/index.js'
-import {
-  ACCESS,
-  VERIFY_EMAIL,
-  TokenType,
-  RESET_PASSWORD
-} from '../config/tokenTypes.js'
+import { env, TokenTypes } from '../config/index.js'
 
 const key32 = (key: string) => key.substring(0, 32)
 
@@ -121,7 +115,7 @@ export class TokenService {
     }
   }
 
-  verifyJwt = (token: string, type: TokenType) => {
+  verifyJwt = (token: string, type: TokenTypes) => {
     let payload
 
     try {
@@ -149,7 +143,7 @@ export class TokenService {
     nonce: string
   }) => {
     const accessToken = this.jwt.sign(
-      { sub: userId, type: ACCESS, jti: nonce },
+      { sub: userId, type: TokenTypes.ACCESS, jti: nonce },
       // A numeric value is interpreted as a seconds count.
       // If you use a string be sure you provide the time units (days, hours, etc.),
       // otherwise milliseconds unit is used by default ("120" is equal to "120ms").
@@ -162,13 +156,21 @@ export class TokenService {
 
   generateVerifyEmailToken = (userId: string) =>
     this.jwt.sign(
-      { sub: userId, type: VERIFY_EMAIL, jti: this.generateNonce() },
+      {
+        sub: userId,
+        type: TokenTypes.VERIFY_EMAIL,
+        jti: this.generateNonce()
+      },
       { expiresIn: env.TOKEN_VERIFY_EMAIL_EXPIRATION.toString() }
     )
 
   generateResetPasswordToken = (userId: string) =>
     this.jwt.sign(
-      { sub: userId, type: RESET_PASSWORD, jti: this.generateNonce() },
+      {
+        sub: userId,
+        type: TokenTypes.RESET_PASSWORD,
+        jti: this.generateNonce()
+      },
       { expiresIn: env.TOKEN_RESET_PASSWORD_EXPIRATION.toString() }
     )
 }
