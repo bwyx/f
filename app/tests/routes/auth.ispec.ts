@@ -205,8 +205,8 @@ describe('[Route: Auth]', async () => {
       const resp = await this.f.inject({
         method,
         url,
-        headers: {
-          authorization: `Bearer ${refresh}`
+        payload: {
+          refreshToken: refresh
         }
       })
 
