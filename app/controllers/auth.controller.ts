@@ -4,11 +4,11 @@ import type { RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
 import {
-  registerBody,
-  loginBody,
-  verifyEmailQuery,
-  forgotPasswordBody,
-  resetPasswordBody
+  register,
+  login,
+  verifyEmail,
+  forgotPassword,
+  resetPassword
 } from '../validations/auth.schema.js'
 import { TokenTypes } from '../config/index.js'
 
@@ -28,7 +28,7 @@ export class AuthController {
   ) {}
 
   register: RouteHandler<{
-    Body: FromSchema<typeof registerBody>
+    Body: FromSchema<typeof register.body>
   }> = async (req, rep) => {
     const { name, email, password } = req.body
 
@@ -38,7 +38,7 @@ export class AuthController {
   }
 
   login: RouteHandler<{
-    Body: FromSchema<typeof loginBody>
+    Body: FromSchema<typeof login.body>
   }> = async (req, rep) => {
     const { email, password } = req.body
     const user = await this.userService.getUserByEmail(email)
@@ -137,7 +137,7 @@ export class AuthController {
   }
 
   verifyEmail: RouteHandler<{
-    Querystring: FromSchema<typeof verifyEmailQuery>
+    Querystring: FromSchema<typeof verifyEmail.querystring>
   }> = async (req, rep) => {
     const { sub } = this.tokenService.verifyJwt(
       req.query.token,
@@ -167,7 +167,7 @@ export class AuthController {
   }
 
   sendResetPasswordEmail: RouteHandler<{
-    Body: FromSchema<typeof forgotPasswordBody>
+    Body: FromSchema<typeof forgotPassword.body>
   }> = async (req, rep) => {
     const user = await this.userService.getUserByEmail(req.body.email)
 
@@ -186,8 +186,8 @@ export class AuthController {
   }
 
   resetPassword: RouteHandler<{
-    Querystring: FromSchema<typeof verifyEmailQuery>
-    Body: FromSchema<typeof resetPasswordBody>
+    Querystring: FromSchema<typeof resetPassword.querystring>
+    Body: FromSchema<typeof resetPassword.body>
   }> = async (req, rep) => {
     const { password } = req.body
     const { sub } = this.tokenService.verifyJwt(

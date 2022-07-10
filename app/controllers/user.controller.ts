@@ -1,7 +1,7 @@
 import type { RouteHandler } from 'fastify'
 import type { FromSchema } from 'json-schema-to-ts'
 
-import { createUserBody, deleteUserParams } from '../validations/user.schema.js'
+import { createUser, deleteUser } from '../validations/user.schema.js'
 
 import type { UserService } from '../services'
 
@@ -13,13 +13,13 @@ export class UserController {
   }
 
   create: RouteHandler<{
-    Body: FromSchema<typeof createUserBody>
+    Body: FromSchema<typeof createUser.body>
   }> = async (req, rep) => {
     rep.send(await this.userService.createUser(req.body))
   }
 
   delete: RouteHandler<{
-    Params: FromSchema<typeof deleteUserParams>
+    Params: FromSchema<typeof deleteUser.params>
     Reply: undefined // 204
   }> = async (req, rep) => {
     const { userId } = req.params

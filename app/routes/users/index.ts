@@ -1,9 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify'
 
-import {
-  createUserBody,
-  deleteUserParams
-} from '../../validations/user.schema.js'
+import userSchema from '../../validations/user.schema.js'
 
 const routes: FastifyPluginAsync = async (f) => {
   const { user } = f.controllers
@@ -17,14 +14,14 @@ const routes: FastifyPluginAsync = async (f) => {
   f.route({
     method: 'POST',
     url: '/',
-    schema: { body: createUserBody },
+    schema: userSchema.createUser,
     handler: user.create
   })
 
   f.route({
     method: 'DELETE',
     url: '/:userId',
-    schema: { params: deleteUserParams },
+    schema: userSchema.deleteUser,
     handler: user.delete
   })
 }
