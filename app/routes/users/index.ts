@@ -8,13 +8,14 @@ const routes: FastifyPluginAsync = async (f) => {
   f.route({
     method: 'GET',
     url: '/',
+    schema: userSchema.list,
     handler: user.list
   })
 
   f.route({
     method: 'POST',
     url: '/',
-    schema: userSchema.createUser,
+    schema: userSchema.create,
     handler: user.create
   })
 

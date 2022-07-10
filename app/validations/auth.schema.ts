@@ -21,6 +21,22 @@ export const login = {
   }
 } as const
 
+export const sessions = {
+  response: {
+    200: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          createdAt: { type: 'string' },
+          expires: { type: 'string' }
+        }
+      }
+    }
+  }
+} as const
+
 export const verifyEmail = {
   querystring: {
     type: 'object',
@@ -61,6 +77,7 @@ export const resetPassword = {
 export default {
   register,
   login,
+  sessions,
   verifyEmail,
   forgotPassword,
   resetPassword

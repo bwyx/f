@@ -29,6 +29,7 @@ const routes: FastifyPluginAsync = async (f) => {
   f.route({
     method: 'GET',
     url: '/sessions',
+    schema: authSchema.sessions,
     onRequest: authenticate,
     handler: auth.getSessions
   })

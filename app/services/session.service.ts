@@ -60,7 +60,12 @@ export class SessionService {
 
   listSessions = async ({ userId }: { userId: string }) =>
     this.session.findMany({
-      where: { userId }
+      where: { userId },
+      select: {
+        id: true,
+        createdAt: true,
+        expires: true
+      }
     })
 
   deleteSessionById = async (sessionId: string) => {

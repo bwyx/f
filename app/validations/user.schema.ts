@@ -1,4 +1,4 @@
-export const createUser = {
+export const create = {
   body: {
     type: 'object',
     required: ['name', 'email', 'password'],
@@ -6,6 +6,22 @@ export const createUser = {
       name: { type: 'string' },
       email: { type: 'string', format: 'email' },
       password: { type: 'string' }
+    }
+  }
+} as const
+
+export const list = {
+  response: {
+    200: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          email: { type: 'string' }
+        }
+      }
     }
   }
 } as const
@@ -20,4 +36,4 @@ export const deleteUser = {
   }
 } as const
 
-export default { createUser, deleteUser }
+export default { create, list, deleteUser }
