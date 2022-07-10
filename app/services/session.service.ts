@@ -16,7 +16,7 @@ export class SessionService {
   constructor(private session: PrismaClient['session']) {}
 
   createSession = async ({ userId, nonce }: SessionCompoundUnique) => {
-    const expires = new Date(Date.now() + env.TOKEN_REFRESH_EXPIRATION)
+    const expires = new Date(Date.now() + env.EXP_MS_REFRESH)
 
     return this.session.create({
       data: { userId, nonce, expires }
@@ -25,7 +25,7 @@ export class SessionService {
 
   refreshSession = async ({ sessionId, nonce, nextNonce }: UpdateSession) => {
     const now = new Date()
-    const newExpires = new Date(Date.now() + env.TOKEN_REFRESH_EXPIRATION)
+    const newExpires = new Date(Date.now() + env.EXP_MS_REFRESH)
 
     const session = await this.session.findUnique({
       where: { id: sessionId }

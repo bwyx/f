@@ -33,10 +33,7 @@ const cookieOptions = ({
   accessibleFromJavascript = false,
   lifespan
 }: JWTCookieOptions): CookieSerializeOptions => {
-  const age =
-    lifespan === 'access'
-      ? env.TOKEN_ACCESS_EXPIRATION
-      : env.TOKEN_REFRESH_EXPIRATION
+  const age = lifespan === 'access' ? env.EXP_MS_ACCESS : env.EXP_MS_REFRESH
 
   return {
     path,

@@ -14,18 +14,15 @@ interface BaseEnv {
   SMTP_FROM_NAME: string
   SMTP_FROM_EMAIL: string
   TRUST_PROXY: boolean
-}
-
-export interface RawEnv extends BaseEnv {
-  TOKEN_ACCESS_EXPIRATION: string
-  TOKEN_REFRESH_EXPIRATION: string
-  TOKEN_VERIFY_EMAIL_EXPIRATION: string
-  TOKEN_RESET_PASSWORD_EXPIRATION: string
+  EXP_ACCESS: string
+  EXP_REFRESH: string
+  EXP_VERIFY_EMAIL: string
+  EXP_RESET_PASSWORD: string
 }
 
 export interface ENV extends BaseEnv {
-  TOKEN_ACCESS_EXPIRATION: number
-  TOKEN_REFRESH_EXPIRATION: number
-  TOKEN_VERIFY_EMAIL_EXPIRATION: number
-  TOKEN_RESET_PASSWORD_EXPIRATION: number
+  EXP_MS_ACCESS: number
+  EXP_MS_REFRESH: number
+  EXP_MS_VERIFY_EMAIL: number
+  EXP_MS_RESET_PASSWORD: number
 }

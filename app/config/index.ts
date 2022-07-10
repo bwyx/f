@@ -1,7 +1,7 @@
 import { envSchema } from 'env-schema'
 
 import type { FastifyServerOptions } from 'fastify'
-import type { ENV, RawEnv } from '../types'
+import type { ENV, BaseEnv } from '../types'
 
 import { parseTime } from '../utils/time.util.js'
 
@@ -11,7 +11,7 @@ export enum TokenTypes {
   RESET_PASSWORD = 'reset_password'
 }
 
-const rawEnv: RawEnv = envSchema({
+const baseEnv: BaseEnv = envSchema({
   dotenv: true,
   expandEnv: true,
   schema: {
@@ -32,28 +32,24 @@ const rawEnv: RawEnv = envSchema({
       SMTP_PASS: { type: 'string' },
       SMTP_FROM_NAME: { type: 'string', default: 'f' },
       SMTP_FROM_EMAIL: { type: 'string' },
-      TOKEN_ACCESS_EXPIRATION: { type: 'string', default: '1h' },
-      TOKEN_REFRESH_EXPIRATION: { type: 'string', default: '7d' },
-      TOKEN_VERIFY_EMAIL_EXPIRATION: { type: 'string', default: '5m' },
-      TOKEN_RESET_PASSWORD_EXPIRATION: { type: 'string', default: '5m' },
-      TRUST_PROXY: { type: 'boolean', default: false }
+      TRUST_PROXY: { type: 'boolean', default: false },
+      EXP_ACCESS: { type: 'string', default: '15m' },
+      EXP_REFRESH: { type: 'string', default: '30d' },
+      EXP_VERIFY_EMAIL: { type: 'string', default: '5m' },
+      EXP_RESET_PASSWORD: { type: 'string', default: '5m' }
     }
   }
 })
 
-const convertTemporalEnv = (): ENV => ({
-  ...rawEnv,
-  TOKEN_ACCESS_EXPIRATION: parseTime(rawEnv.TOKEN_ACCESS_EXPIRATION),
-  TOKEN_REFRESH_EXPIRATION: parseTime(rawEnv.TOKEN_REFRESH_EXPIRATION),
-  TOKEN_VERIFY_EMAIL_EXPIRATION: parseTime(
-    rawEnv.TOKEN_VERIFY_EMAIL_EXPIRATION
-  ),
-  TOKEN_RESET_PASSWORD_EXPIRATION: parseTime(
-    rawEnv.TOKEN_RESET_PASSWORD_EXPIRATION
-  )
+const withTemporalEnv = (env: BaseEnv): ENV => ({
+  ...env,
+  EXP_MS_ACCESS: parseTime(env.EXP_ACCESS),
+  EXP_MS_REFRESH: parseTime(env.EXP_REFRESH),
+  EXP_MS_VERIFY_EMAIL: parseTime(env.EXP_VERIFY_EMAIL),
+  EXP_MS_RESET_PASSWORD: parseTime(env.EXP_RESET_PASSWORD)
 })
 
-export const env = convertTemporalEnv()
+export const env = withTemporalEnv(baseEnv)
 
 export const fastifyConfig: FastifyServerOptions = {
   trustProxy: env.TRUST_PROXY,

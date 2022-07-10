@@ -144,11 +144,7 @@ export class TokenService {
   }) => {
     const accessToken = this.jwt.sign(
       { sub: userId, type: TokenTypes.ACCESS, jti: nonce },
-      // A numeric value is interpreted as a seconds count.
-      // If you use a string be sure you provide the time units (days, hours, etc.),
-      // otherwise milliseconds unit is used by default ("120" is equal to "120ms").
-      // https://github.com/fastify/fastify-jwt#sign
-      { expiresIn: env.TOKEN_ACCESS_EXPIRATION.toString() }
+      { expiresIn: env.EXP_ACCESS }
     )
 
     return accessToken
@@ -161,7 +157,7 @@ export class TokenService {
         type: TokenTypes.VERIFY_EMAIL,
         jti: this.generateNonce()
       },
-      { expiresIn: env.TOKEN_VERIFY_EMAIL_EXPIRATION.toString() }
+      { expiresIn: env.EXP_VERIFY_EMAIL }
     )
 
   generateResetPasswordToken = (userId: string) =>
@@ -171,7 +167,7 @@ export class TokenService {
         type: TokenTypes.RESET_PASSWORD,
         jti: this.generateNonce()
       },
-      { expiresIn: env.TOKEN_RESET_PASSWORD_EXPIRATION.toString() }
+      { expiresIn: env.EXP_RESET_PASSWORD }
     )
 }
 
