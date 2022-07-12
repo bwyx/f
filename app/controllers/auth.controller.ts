@@ -81,7 +81,7 @@ export class AuthController {
       // do nothing
     }
 
-    rep.destroyFrontendAuthCookies()
+    rep.destroyAuthCookies()
     rep.code(200).send()
   }
 

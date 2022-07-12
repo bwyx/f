@@ -195,18 +195,23 @@ describe('[Route: Auth]', async () => {
     const url = '/auth/refresh-tokens'
 
     it('should refresh the auth tokens', async function () {
+      // Login
       const loginResponse = await this.f.inject({
         method: 'POST',
         url: 'auth/login',
         payload: login1
       })
-      const { refresh } = loginResponse.json()
+      const { access } = loginResponse.json()
+      const cookiesAfterLogin = loginResponse.cookies as ParsedCookie[]
+      const cookieString = toCookieString(cookiesAfterLogin)
+      // Login End
 
       const resp = await this.f.inject({
         method,
         url,
-        payload: {
-          refreshToken: refresh
+        headers: {
+          authorization: `Bearer ${access}`,
+          cookie: cookieString
         }
       })
 

@@ -97,15 +97,8 @@ export const extractToken = (req: FastifyRequest) => {
 }
 
 export function getSessionId(this: FastifyRequest) {
-  if (typeof this.body === 'object' && this.body !== null) {
-    const { sessionId } = this.body as Record<string, string | undefined>
-    if (sessionId) return sessionId
-  }
-
-  if (isFromFrontend(this)) {
-    const cookieSession = this.cookies[COOKIE.SESSION]
-    if (cookieSession) return cookieSession
-  }
+  const cookieSession = this.cookies[COOKIE.SESSION]
+  if (cookieSession) return cookieSession
 
   throw httpErrors(401, 'No session was found in request body or cookies')
 }
@@ -115,6 +108,12 @@ export function sendAccessTokenAndSessionId(
   access: string,
   sessionId: string
 ) {
+  this.setCookie(
+    COOKIE.SESSION,
+    sessionId,
+    cookieOptions({ lifespan: 'refresh' })
+  )
+
   if (isFromFrontend(this.request)) {
     const { payload, headersAndSignature } = splitJwt(access)
 
@@ -133,28 +132,22 @@ export function sendAccessTokenAndSessionId(
       cookieOptions({ lifespan: 'refresh' })
     )
 
-    this.setCookie(
-      COOKIE.SESSION,
-      sessionId,
-      cookieOptions({ lifespan: 'refresh' })
-    )
-
     this.send()
     return
   }
 
-  this.send({ access, sessionId })
+  this.send({ access })
 }
 
 // Remove cookie server side
 // https://tools.ietf.org/search/rfc6265
-export function destroyFrontendAuthCookies(this: FastifyReply) {
-  if (isFromFrontend(this.request)) {
-    const EMPTY = ''
+export function destroyAuthCookies(this: FastifyReply) {
+  this.setCookie(COOKIE.SESSION, '', cookieOptions({ lifespan: 'destroy' }))
 
+  if (isFromFrontend(this.request)) {
     this.setCookie(
       COOKIE.PAYLOAD,
-      EMPTY,
+      '',
       cookieOptions({
         accessibleFromJavascript: true,
         lifespan: 'destroy'
@@ -163,13 +156,7 @@ export function destroyFrontendAuthCookies(this: FastifyReply) {
 
     this.setCookie(
       COOKIE.HEADER_SIGNATURE,
-      EMPTY,
-      cookieOptions({ lifespan: 'destroy' })
-    )
-
-    this.setCookie(
-      COOKIE.SESSION,
-      EMPTY,
+      '',
       cookieOptions({ lifespan: 'destroy' })
     )
   }
@@ -178,7 +165,7 @@ export function destroyFrontendAuthCookies(this: FastifyReply) {
 export default fp(async (f) => {
   f.decorateRequest('getSessionId', getSessionId)
   f.decorateReply('sendAccessTokenAndSessionId', sendAccessTokenAndSessionId)
-  f.decorateReply('destroyFrontendAuthCookies', destroyFrontendAuthCookies)
+  f.decorateReply('destroyAuthCookies', destroyAuthCookies)
 })
 
 declare module 'fastify' {
@@ -190,6 +177,6 @@ declare module 'fastify' {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   interface FastifyReply {
     sendAccessTokenAndSessionId: typeof sendAccessTokenAndSessionId
-    destroyFrontendAuthCookies: typeof destroyFrontendAuthCookies
+    destroyAuthCookies: typeof destroyAuthCookies
   }
 }
