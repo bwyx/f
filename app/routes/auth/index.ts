@@ -23,6 +23,7 @@ const routes: FastifyPluginAsync = async (f) => {
   f.route({
     method: 'POST',
     url: '/logout',
+    onRequest: authenticate({ ignoreExpiration: true }),
     handler: auth.logout
   })
 
@@ -30,20 +31,21 @@ const routes: FastifyPluginAsync = async (f) => {
     method: 'GET',
     url: '/sessions',
     schema: authSchema.sessions,
-    onRequest: authenticate,
+    onRequest: authenticate(),
     handler: auth.getSessions
   })
 
   f.route({
     method: 'POST',
     url: '/refresh-tokens',
+    onRequest: authenticate({ ignoreExpiration: true }),
     handler: auth.refreshTokens
   })
 
   f.route({
     method: 'POST',
     url: '/send-verification-email',
-    onRequest: authenticate,
+    onRequest: authenticate(),
     handler: auth.sendVerificationEmail
   })
 

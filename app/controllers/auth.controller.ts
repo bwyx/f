@@ -63,23 +63,18 @@ export class AuthController {
       nonce
     })
 
-    rep.sendAuthTokens({
-      access: this.tokenService.generateAccessToken({
-        userId: user.id,
-        nonce
-      }),
-      refresh: this.tokenService.generateRefreshToken({
-        sessionId: createdSession.id,
-        nonce
-      })
+    const accessToken = this.tokenService.generateAccessToken({
+      userId: user.id,
+      nonce
     })
+
+    rep.sendAccessTokenAndSessionId(accessToken, createdSession.id)
   }
 
   logout: RouteHandler = async (req, rep) => {
     try {
       // TODO: blacklist access token jti (tokenNonce)
-      const refreshToken = req.getRefreshToken()
-      const { sessionId } = this.tokenService.verifyRefreshToken(refreshToken)
+      const sessionId = req.getSessionId()
 
       await this.sessionService.deleteSessionById(sessionId)
     } catch (e) {
@@ -97,27 +92,22 @@ export class AuthController {
   }
 
   refreshTokens: RouteHandler = async (req, rep) => {
-    const refreshToken = req.getRefreshToken()
+    const sessionId = req.getSessionId()
+    const currentNonce = req.user.jti
 
-    const { sessionId, nextNonce, tokenNonce } =
-      this.tokenService.verifyRefreshToken(refreshToken)
-
+    const nextNonce = this.tokenService.generateNonce()
     const updatedSession = await this.sessionService.refreshSession({
       sessionId,
-      nonce: tokenNonce,
+      nonce: currentNonce,
       nextNonce
     })
 
-    rep.sendAuthTokens({
-      access: this.tokenService.generateAccessToken({
-        userId: updatedSession.userId,
-        nonce: nextNonce
-      }),
-      refresh: this.tokenService.generateRefreshToken({
-        sessionId,
-        nonce: nextNonce
-      })
+    const accessToken = this.tokenService.generateAccessToken({
+      userId: updatedSession.userId,
+      nonce: nextNonce
     })
+
+    rep.sendAccessTokenAndSessionId(accessToken, sessionId)
   }
 
   sendVerificationEmail: RouteHandler = async (req, rep) => {

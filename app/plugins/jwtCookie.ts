@@ -11,11 +11,6 @@ import { env } from '../config/index.js'
  *
  */
 
-interface AuthTokens {
-  access: string
-  refresh: string
-}
-
 interface JWTCookieOptions {
   path?: string
   accessibleFromJavascript?: boolean
@@ -25,7 +20,7 @@ interface JWTCookieOptions {
 const COOKIE = {
   PAYLOAD: `${env.APP_NAME}_user`,
   HEADER_SIGNATURE: `${env.APP_NAME}_token`,
-  REFRESH: `${env.APP_NAME}_session`
+  SESSION: `${env.APP_NAME}_session`
 }
 
 const cookieOptions = ({
@@ -101,23 +96,27 @@ export const extractToken = (req: FastifyRequest) => {
   return token
 }
 
-export function getRefreshToken(this: FastifyRequest) {
+export function getSessionId(this: FastifyRequest) {
   if (typeof this.body === 'object' && this.body !== null) {
-    const { refreshToken } = this.body as Record<string, string | undefined>
-    if (refreshToken) return refreshToken
+    const { sessionId } = this.body as Record<string, string | undefined>
+    if (sessionId) return sessionId
   }
 
   if (isFromFrontend(this)) {
-    const cookieRefresh = this.cookies[COOKIE.REFRESH]
-    if (cookieRefresh) return cookieRefresh
+    const cookieSession = this.cookies[COOKIE.SESSION]
+    if (cookieSession) return cookieSession
   }
 
-  throw httpErrors(401, 'No refresh token was found in request body or cookies')
+  throw httpErrors(401, 'No session was found in request body or cookies')
 }
 
-export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
+export function sendAccessTokenAndSessionId(
+  this: FastifyReply,
+  access: string,
+  sessionId: string
+) {
   if (isFromFrontend(this.request)) {
-    const { payload, headersAndSignature } = splitJwt(tokens.access)
+    const { payload, headersAndSignature } = splitJwt(access)
 
     this.setCookie(
       COOKIE.PAYLOAD,
@@ -131,12 +130,12 @@ export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
     this.setCookie(
       COOKIE.HEADER_SIGNATURE,
       headersAndSignature,
-      cookieOptions({ lifespan: 'access' })
+      cookieOptions({ lifespan: 'refresh' })
     )
 
     this.setCookie(
-      COOKIE.REFRESH,
-      tokens.refresh,
+      COOKIE.SESSION,
+      sessionId,
       cookieOptions({ lifespan: 'refresh' })
     )
 
@@ -144,7 +143,7 @@ export function sendAuthTokens(this: FastifyReply, tokens: AuthTokens) {
     return
   }
 
-  this.send(tokens)
+  this.send({ access, sessionId })
 }
 
 // Remove cookie server side
@@ -169,7 +168,7 @@ export function destroyFrontendAuthCookies(this: FastifyReply) {
     )
 
     this.setCookie(
-      COOKIE.REFRESH,
+      COOKIE.SESSION,
       EMPTY,
       cookieOptions({ lifespan: 'destroy' })
     )
@@ -177,20 +176,20 @@ export function destroyFrontendAuthCookies(this: FastifyReply) {
 }
 
 export default fp(async (f) => {
-  f.decorateRequest('getRefreshToken', getRefreshToken)
-  f.decorateReply('sendAuthTokens', sendAuthTokens)
+  f.decorateRequest('getSessionId', getSessionId)
+  f.decorateReply('sendAccessTokenAndSessionId', sendAccessTokenAndSessionId)
   f.decorateReply('destroyFrontendAuthCookies', destroyFrontendAuthCookies)
 })
 
 declare module 'fastify' {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   interface FastifyRequest {
-    getRefreshToken: typeof getRefreshToken
+    getSessionId: typeof getSessionId
   }
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
   interface FastifyReply {
-    sendAuthTokens: typeof sendAuthTokens
+    sendAccessTokenAndSessionId: typeof sendAccessTokenAndSessionId
     destroyFrontendAuthCookies: typeof destroyFrontendAuthCookies
   }
 }
