@@ -27,9 +27,23 @@ export class SessionService {
     const now = new Date()
     const newExpires = new Date(Date.now() + env.EXP_MS_REFRESH)
 
-    const session = await this.session.findUnique({
-      where: { id: sessionId }
-    })
+    let session
+
+    try {
+      session = await this.session.findUnique({
+        where: { id: sessionId }
+      })
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === 'P2023') {
+          throw new httpErrors.Unauthorized(
+            'It seems like you have been logged out. Please login again'
+          )
+        }
+      }
+
+      throw e
+    }
 
     if (!session) {
       throw new httpErrors.Unauthorized(
