@@ -7,6 +7,7 @@
     "clean": "rimraf {dist,release}/*",
     "dev": "npm run clean && NODE_ENV=development tsc-watch --onSuccess 'node dist/server.js' | pino-colada",
     "build": "npm run clean && NODE_ENV=production tsc",
+    "start": "node dist/server.js",
     "unit": "npm run build && mocha dist/**/*.spec.js",
     "unit:w": "npm run clean && NODE_ENV=development tsc-watch --onSuccess 'mocha dist/**/*.spec.js'",
     "integration": "npx prisma migrate reset --force && npm run build && mocha dist/**/*.ispec.js",
@@ -73,9 +74,6 @@
     "tabWidth": 2,
     "semi": false,
     "singleQuote": true
-  },
-  "prisma": {
-    "schema": "app/database/schema.prisma"
   },
   "lint-staged": {
     "*.ts": [
