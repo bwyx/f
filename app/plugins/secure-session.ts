@@ -14,7 +14,13 @@ import { env, COOKIES } from '../config/index.js'
 export default fp<SecureSessionPluginOptions>(async (fastify) => {
   fastify.register(secureSession, {
     cookieName: COOKIES.SESSION,
-    key: env.KEYS
+    key: env.KEYS,
+    cookie: {
+      domain: env.FRONTEND_DOMAIN,
+      path: '/',
+      httpOnly: true,
+      secure: env.APP_ENV !== 'development'
+    }
   })
 })
 
