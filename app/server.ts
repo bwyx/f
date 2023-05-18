@@ -9,9 +9,9 @@ const f = build(fastifyConfig)
 const start = async () => {
   try {
     if (isDocker()) {
-      await f.listen(env.APP_PORT, '0.0.0.0')
+      await f.listen({ port: env.APP_PORT, host: '0.0.0.0' })
     } else {
-      await f.listen(env.APP_PORT)
+      await f.listen({ port: env.APP_PORT })
     }
   } catch (err) {
     f.log.fatal(err)

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import fastify from 'fastify'
 import autoload from 'fastify-autoload'
 import blipp from 'fastify-blipp'
-import helmet from 'fastify-helmet'
+import helmet from '@fastify/helmet'
 
 import type { FastifyInstance, FastifyServerOptions } from 'fastify'
 
