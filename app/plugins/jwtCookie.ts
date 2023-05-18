@@ -32,7 +32,7 @@ const cookieOptions = ({
 
   return {
     path,
-    secure: true,
+    secure: env.APP_ENV === 'production',
     sameSite: 'lax',
     domain: env.FRONTEND_DOMAIN ? `.${env.FRONTEND_DOMAIN}` : undefined,
     httpOnly: !accessibleFromJavascript,
