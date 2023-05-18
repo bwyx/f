@@ -29,7 +29,7 @@ const cookieOptions = ({
     sameSite: 'lax',
     domain: env.FRONTEND_DOMAIN ? `.${env.FRONTEND_DOMAIN}` : undefined,
     httpOnly: !accessibleFromJavascript,
-    maxAge: lifespan === 'destroy' ? 0 : age,
+    maxAge: lifespan === 'destroy' ? 0 : age / 1000,
     expires: lifespan === 'destroy' ? new Date(0) : undefined
   } as const
 }
