@@ -10,23 +10,27 @@ COPY . ./
 
 CMD npm run build
 
-FROM node:16-alpine AS bcrypt
+FROM node:16-alpine AS dependencies
+
+ENV NODE_ENV=production
 
 WORKDIR /@app
 
 RUN apk add --no-cache python3 make g++
-RUN npm install bcrypt
+
+COPY package*.json ./
+
+RUN npm pkg delete scripts.prepare
+RUN npm ci
 
 FROM node:16-alpine AS app
 
 WORKDIR /@app
 
-COPY --from=bcrypt /@app/node_modules/bcrypt ./node_modules/bcrypt
-COPY --from=builder /@app/dist ./
-
 COPY package*.json ./
 
-RUN npm ci --only=production --ignore-scripts
+COPY --from=dependencies /@app/node_modules ./node_modules
+COPY --from=builder /@app/dist ./
 
 COPY prisma ./prisma
 RUN npx prisma generate
