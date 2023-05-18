@@ -16,10 +16,10 @@ const baseEnv: BaseEnv = envSchema({
   expandEnv: true,
   schema: {
     type: 'object',
-    required: ['APP_KEY'],
+    required: ['APP_KEYS'],
     properties: {
       APP_NAME: { type: 'string', default: 'f' },
-      APP_KEY: { type: 'string' },
+      APP_KEYS: { type: 'string' },
       APP_ENV: { type: 'string', default: 'production' },
       APP_PORT: { type: 'number', default: 5000 },
       APP_DEBUG: { type: 'boolean', default: false },
@@ -41,15 +41,16 @@ const baseEnv: BaseEnv = envSchema({
   }
 })
 
-const withTemporalEnv = (env: BaseEnv): ENV => ({
+const processEnv = (env: BaseEnv): ENV => ({
   ...env,
+  KEYS: env.APP_KEYS.split(',').map((key) => Buffer.from(key, 'base64')),
   EXP_MS_ACCESS: parseTime(env.EXP_ACCESS),
   EXP_MS_REFRESH: parseTime(env.EXP_REFRESH),
   EXP_MS_VERIFY_EMAIL: parseTime(env.EXP_VERIFY_EMAIL),
   EXP_MS_RESET_PASSWORD: parseTime(env.EXP_RESET_PASSWORD)
 })
 
-export const env = withTemporalEnv(baseEnv)
+export const env = processEnv(baseEnv)
 
 export const fastifyConfig: FastifyServerOptions = {
   trustProxy: env.TRUST_PROXY,
@@ -57,4 +58,10 @@ export const fastifyConfig: FastifyServerOptions = {
   logger: {
     level: env.APP_DEBUG ? 'debug' : 'info'
   }
+}
+
+export const COOKIES = {
+  PAYLOAD: `${env.APP_NAME}_user`,
+  HEADER_SIGNATURE: `${env.APP_NAME}_token`,
+  SESSION: `${env.APP_NAME}_session`
 }

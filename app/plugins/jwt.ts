@@ -34,7 +34,7 @@ const authenticate =
  */
 export default fp<FastifyJWTOptions>(async (f) => {
   f.register(jwt, {
-    secret: env.APP_KEY,
+    secret: env.KEYS.join(),
     verify: { extractToken }
   })
   f.decorate('authenticate', authenticate)

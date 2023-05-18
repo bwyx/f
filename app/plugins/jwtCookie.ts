@@ -4,7 +4,7 @@ import httpErrors from 'http-errors'
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import type { CookieSerializeOptions } from 'fastify-cookie'
 
-import { env } from '../config/index.js'
+import { env, COOKIES } from '../config/index.js'
 
 /**
  * This lib securely implement JWT on cookies using best practices
@@ -15,12 +15,6 @@ interface JWTCookieOptions {
   path?: string
   accessibleFromJavascript?: boolean
   lifespan: 'access' | 'refresh' | 'destroy'
-}
-
-const COOKIE = {
-  PAYLOAD: `${env.APP_NAME}_user`,
-  HEADER_SIGNATURE: `${env.APP_NAME}_token`,
-  SESSION: `${env.APP_NAME}_session`
 }
 
 const cookieOptions = ({
@@ -80,8 +74,8 @@ export const extractToken = (req: FastifyRequest) => {
   } catch (e) {
     if (isFromFrontend(req)) {
       const { cookies } = req
-      const payload = cookies[COOKIE.PAYLOAD]
-      const headersAndSignature = cookies[COOKIE.HEADER_SIGNATURE]
+      const payload = cookies[COOKIES.PAYLOAD]
+      const headersAndSignature = cookies[COOKIES.HEADER_SIGNATURE]
 
       if (!payload || !headersAndSignature) {
         throw httpErrors(401, 'No Authorization was found in request.cookies')
@@ -97,28 +91,29 @@ export const extractToken = (req: FastifyRequest) => {
 }
 
 export function getSessionId(this: FastifyRequest) {
-  const cookieSession = this.cookies[COOKIE.SESSION]
+  const cookieSession = this.session.get('sessionId')
   if (cookieSession) return cookieSession
 
   throw httpErrors(401, 'No session was found in request body or cookies')
 }
 
+interface SendAccessTokenAndSessionId {
+  accessToken: string
+  sessionId: string
+  redirectTo?: string
+}
+
 export function sendAccessTokenAndSessionId(
   this: FastifyReply,
-  access: string,
-  sessionId: string
+  { accessToken, sessionId, redirectTo }: SendAccessTokenAndSessionId
 ) {
-  this.setCookie(
-    COOKIE.SESSION,
-    sessionId,
-    cookieOptions({ lifespan: 'refresh' })
-  )
+  this.request.session.set('sessionId', sessionId)
 
-  if (isFromFrontend(this.request)) {
-    const { payload, headersAndSignature } = splitJwt(access)
+  if (isFromFrontend(this.request) || redirectTo) {
+    const { payload, headersAndSignature } = splitJwt(accessToken)
 
     this.setCookie(
-      COOKIE.PAYLOAD,
+      COOKIES.PAYLOAD,
       payload,
       cookieOptions({
         accessibleFromJavascript: true,
@@ -127,26 +122,27 @@ export function sendAccessTokenAndSessionId(
     )
 
     this.setCookie(
-      COOKIE.HEADER_SIGNATURE,
+      COOKIES.HEADER_SIGNATURE,
       headersAndSignature,
       cookieOptions({ lifespan: 'refresh' })
     )
 
-    this.send()
+    if (redirectTo) this.redirect(redirectTo)
+    else this.send()
     return
   }
 
-  this.send({ access })
+  this.send({ accessToken })
 }
 
 // Remove cookie server side
 // https://tools.ietf.org/search/rfc6265
 export function destroyAuthCookies(this: FastifyReply) {
-  this.setCookie(COOKIE.SESSION, '', cookieOptions({ lifespan: 'destroy' }))
+  this.request.session.delete()
 
   if (isFromFrontend(this.request)) {
     this.setCookie(
-      COOKIE.PAYLOAD,
+      COOKIES.PAYLOAD,
       '',
       cookieOptions({
         accessibleFromJavascript: true,
@@ -155,7 +151,7 @@ export function destroyAuthCookies(this: FastifyReply) {
     )
 
     this.setCookie(
-      COOKIE.HEADER_SIGNATURE,
+      COOKIES.HEADER_SIGNATURE,
       '',
       cookieOptions({ lifespan: 'destroy' })
     )

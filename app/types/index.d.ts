@@ -1,6 +1,6 @@
 interface BaseEnv {
   APP_NAME: string
-  APP_KEY: string
+  APP_KEYS: string
   APP_ENV: string
   APP_PORT: number
   APP_DEBUG: boolean
@@ -21,6 +21,7 @@ interface BaseEnv {
 }
 
 export interface ENV extends BaseEnv {
+  KEYS: Buffer[]
   EXP_MS_ACCESS: number
   EXP_MS_REFRESH: number
   EXP_MS_VERIFY_EMAIL: number

@@ -58,7 +58,7 @@ export class AuthController {
     }
 
     const nonce = this.tokenService.generateNonce()
-    const createdSession = await this.sessionService.createSession({
+    const { id: sessionId } = await this.sessionService.createSession({
       userId: user.id,
       nonce
     })
@@ -68,7 +68,7 @@ export class AuthController {
       nonce
     })
 
-    rep.sendAccessTokenAndSessionId(accessToken, createdSession.id)
+    rep.sendAccessTokenAndSessionId({ accessToken, sessionId })
   }
 
   logout: RouteHandler = async (req, rep) => {
@@ -107,7 +107,7 @@ export class AuthController {
       nonce: nextNonce
     })
 
-    rep.sendAccessTokenAndSessionId(accessToken, sessionId)
+    rep.sendAccessTokenAndSessionId({ accessToken, sessionId })
   }
 
   sendVerificationEmail: RouteHandler = async (req, rep) => {
