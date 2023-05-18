@@ -1,4 +1,4 @@
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/binary.js'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library.js'
 
 // https://www.prisma.io/docs/reference/api-reference/error-reference#prisma-client-query-engine
 export const prismaErrors = {

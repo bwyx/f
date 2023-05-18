@@ -1,6 +1,6 @@
 import httpErrors from 'http-errors'
 import { hash } from 'bcrypt'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/binary.js'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library.js'
 
 import type { Prisma, PrismaClient } from '@prisma/client'
 
