@@ -21,6 +21,7 @@
   "type": "module",
   "dependencies": {
     "@fastify/helmet": "^10.1.1",
+    "@fastify/secure-session": "^6.1.0",
     "@lukeed/ms": "^2.0.0",
     "@prisma/client": "^4.14.1",
     "@types/nodemailer": "^6.4.4",
