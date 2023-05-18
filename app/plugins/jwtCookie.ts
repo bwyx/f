@@ -2,7 +2,6 @@ import fp from 'fastify-plugin'
 import httpErrors from 'http-errors'
 
 import type { FastifyRequest, FastifyReply } from 'fastify'
-import type { CookieSerializeOptions } from 'fastify-cookie'
 
 import { env, COOKIES } from '../config/index.js'
 
@@ -21,7 +20,7 @@ const cookieOptions = ({
   path = '/',
   accessibleFromJavascript = false,
   lifespan
-}: JWTCookieOptions): CookieSerializeOptions => {
+}: JWTCookieOptions) => {
   const age = lifespan === 'access' ? env.EXP_MS_ACCESS : env.EXP_MS_REFRESH
 
   return {
@@ -32,7 +31,7 @@ const cookieOptions = ({
     httpOnly: !accessibleFromJavascript,
     maxAge: lifespan === 'destroy' ? 0 : age,
     expires: lifespan === 'destroy' ? new Date(0) : undefined
-  }
+  } as const
 }
 
 const isFromFrontend = (req: FastifyRequest) =>
