@@ -27,14 +27,15 @@ describe('[Service: Session]', () => {
   const UUID = '77976d43-c76e-4b0c-943c-342b0f7d6cc4'
   const NONCE = 'WiNcmEgU+0n3GOdf'
   const OLD_INVALID_NONCE = 'o1DInv4l1d-nO7c3'
+  const NOW = Date.now()
   const ONE_SECOND = 1000
 
   const session: Session = {
     id: UUID,
     userId: UUID,
-    createdAt: new Date(Date.now() - ONE_SECOND),
+    createdAt: new Date(NOW - ONE_SECOND),
     nonce: NONCE,
-    expires: new Date(Date.now() + ONE_SECOND)
+    expires: new Date(NOW + ONE_SECOND)
   }
 
   describe('createSession()', () => {

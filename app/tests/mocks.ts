@@ -15,7 +15,9 @@ export const prismaModel = {
   upsert: () => <any>{},
   count: () => <any>{},
   aggregate: () => <any>{},
-  groupBy: () => <any>{}
+  groupBy: () => <any>{},
+  findUniqueOrThrow: () => <any>{},
+  findFirstOrThrow: () => <any>{}
 }
 
 export const jwt: JWT = {

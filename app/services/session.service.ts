@@ -1,6 +1,6 @@
 import httpErrors from 'http-errors'
 
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/index.js'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/binary.js'
 import type { Prisma, PrismaClient } from '@prisma/client'
 
 import { env } from '../config/index.js'
